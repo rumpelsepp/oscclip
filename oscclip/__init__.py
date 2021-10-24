@@ -13,11 +13,11 @@ def die(msg: str):
     sys.exit(1)
 
 
-def osc52_copy(data: bytes, primary: bool):
+def osc52_copy(data: bytes, primary: bool, direct: bool):
     data_enc = base64.b64encode(data)
     clipboard = b"p" if primary else b"c"
     buf = b"\033]52;" + clipboard + b";" + data_enc + b"\a"
-    if "TMUX" in os.environ:
+    if "TMUX" in os.environ and not direct:
         buf = b"\033Ptmux;\033" + buf + b"\033\\"
     sys.stdout.buffer.write(buf)
 
@@ -71,6 +71,12 @@ def osc_copy():
         help="Instead of copying anything, clear the clipboard",
     )
     parser.add_argument(
+        "-d",
+        "--direct",
+        action="store_true",
+        help="Do not bypass terminal multiplexers",
+    )
+    parser.add_argument(
         "-n",
         "--trim-newline",
         action="store_true",
@@ -96,7 +102,7 @@ def osc_copy():
     if args.trim_newline:
         data = data.strip()
 
-    osc52_copy(data, args.primary)
+    osc52_copy(data, args.primary, args.direct)
 
 
 def osc_paste():
