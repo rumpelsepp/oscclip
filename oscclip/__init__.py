@@ -2,6 +2,7 @@
 
 import argparse
 import base64
+import curses
 import os
 import subprocess
 import sys
@@ -13,13 +14,27 @@ def die(msg: str):
     sys.exit(1)
 
 
+def write_tty(data: bytes):
+    with open("/dev/tty", "wb") as f:
+        f.write(data)
+        f.flush()
+
+
+def read_tty(terminator: bytes) -> bytes:
+    with open("/dev/tty", "rb", buffering=0) as f:
+        data = b""
+        while terminator not in data:
+            data += f.read(1)
+    return data
+
+
 def osc52_copy(data: bytes, primary: bool, direct: bool):
     data_enc = base64.b64encode(data)
     clipboard = b"p" if primary else b"c"
     buf = b"\033]52;" + clipboard + b";" + data_enc + b"\a"
     if "TMUX" in os.environ and not direct:
         buf = b"\033Ptmux;\033" + buf + b"\033\\"
-    sys.stdout.buffer.write(buf)
+    write_tty(buf)
 
 
 def _tmux_query_osc52() -> bool:
@@ -44,22 +59,21 @@ def _tmux_osc52_paste(primary: bool) -> bytes:
     return p.stdout
 
 
+def _parse_osc52_response(data: bytes) -> bytes:
+    # TODO: Make indices more robust.
+    if data[:5] != b"\033]52;" or data[-2:] != b"\033\\":
+        raise RuntimeError(f"received invalid OSC52 response: {str(data)}")
+    return base64.b64decode(data[7:-2])
+
+
 def osc52_paste(primary: bool) -> bytes:
     if "TMUX" in os.environ:
         return _tmux_osc52_paste(primary)
-    die("Pasting from anything different than tmux is currently broken. Help is appreciated: https://codeberg.org/rumpelsepp/oscclip")
-    return b""
 
-    # clipboard = b"p" if primary else b"c"
-    # buf = b"\033]52;" + clipboard + b";?\a"
-    # sys.stdout.buffer.write(buf)
-    #
-    # # FIXME: Does not work.
-    # with open("/dev/tty", "rb") as f:
-    #     buf = f.read()
-    #     print(buf)
-    #
-    # return buf
+    clipboard = b"p" if primary else b"c"
+    buf = b"\033]52;" + clipboard + b";?\a"
+    write_tty(buf)
+    return _parse_osc52_response(read_tty(b"\033\\"))
 
 
 def osc_copy():
@@ -121,7 +135,19 @@ def osc_paste():
     )
     args = parser.parse_args()
 
-    data = osc52_paste(args.primary)
+    try:
+        curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        data = osc52_paste(args.primary)
+    finally:
+        curses.nocbreak()
+        curses.echo()
+        curses.endwin()
+
     if args.trim_newline:
         data = data.strip()
-    sys.stdout.buffer.write(data)
+    print(data)
+
+
+osc_paste()
