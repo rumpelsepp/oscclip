@@ -148,6 +148,3 @@ def osc_paste():
     if args.trim_newline:
         data = data.strip()
     print(data)
-
-
-osc_paste()
