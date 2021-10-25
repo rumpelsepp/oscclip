@@ -76,8 +76,17 @@ def osc52_paste(primary: bool) -> bytes:
 
     clipboard = b"p" if primary else b"c"
     buf = b"\033]52;" + clipboard + b";?\a"
-    write_tty(buf)
-    return _parse_osc52_response(read_tty(b"\033\\"))
+
+    try:
+        curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        write_tty(buf)
+        return _parse_osc52_response(read_tty(b"\033\\"))
+    finally:
+        curses.nocbreak()
+        curses.echo()
+        curses.endwin()
 
 
 def osc_copy():
@@ -138,17 +147,9 @@ def osc_paste():
         help='Use the "primary" clipboard',
     )
     args = parser.parse_args()
-
-    try:
-        curses.initscr()
-        curses.noecho()
-        curses.cbreak()
-        data = osc52_paste(args.primary)
-    finally:
-        curses.nocbreak()
-        curses.echo()
-        curses.endwin()
-
+    data = osc52_paste(args.primary)
+    end = "\n"
     if args.trim_newline:
         data = data.strip()
-    print(data.decode())
+        end = ""
+    print(data.decode(), end=end)
