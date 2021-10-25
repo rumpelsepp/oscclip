@@ -147,4 +147,4 @@ def osc_paste():
 
     if args.trim_newline:
         data = data.strip()
-    print(data)
+    print(data.decode())
