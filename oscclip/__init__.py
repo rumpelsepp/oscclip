@@ -28,13 +28,8 @@ def read_tty(terminator: bytes) -> bytes:
     return data
 
 
-def osc52_copy(data: bytes, primary: bool, direct: bool):
-    data_enc = base64.b64encode(data)
-    clipboard = b"p" if primary else b"c"
-    buf = b"\033]52;" + clipboard + b";" + data_enc + b"\a"
-    if "TMUX" in os.environ and not direct:
-        buf = b"\033Ptmux;\033" + buf + b"\033\\"
-    write_tty(buf)
+def _tmux_dcs_passthrough(data: bytes) -> bytes:
+    return b"\033Ptmux;\033" + data + b"\033\\"
 
 
 def _tmux_query_osc52() -> bool:
@@ -66,6 +61,15 @@ def _parse_osc52_response(data: bytes) -> bytes:
     return base64.b64decode(data[7:-2])
 
 
+def osc52_copy(data: bytes, primary: bool, direct: bool):
+    data_enc = base64.b64encode(data)
+    clipboard = b"p" if primary else b"c"
+    buf = b"\033]52;" + clipboard + b";" + data_enc + b"\a"
+    if "TMUX" in os.environ and not direct:
+        buf = _tmux_dcs_passthrough(buf)
+    write_tty(buf)
+
+
 def osc52_paste(primary: bool) -> bytes:
     if "TMUX" in os.environ:
         return _tmux_osc52_paste(primary)
@@ -88,7 +92,7 @@ def osc_copy():
         "-d",
         "--direct",
         action="store_true",
-        help="Do not bypass terminal multiplexers",
+        help="Bypass terminal multiplexers",
     )
     parser.add_argument(
         "-n",
