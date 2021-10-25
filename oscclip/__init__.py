@@ -139,7 +139,7 @@ def osc_copy():
         sys.exit(130)
 
 
-def osc_paste():
+def _osc_paste():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-n",
@@ -160,3 +160,10 @@ def osc_paste():
         data = data.strip()
         end = ""
     print(data.decode(), end=end)
+
+
+def osc_paste():
+    try:
+        _osc_paste()
+    except KeyboardInterrupt:
+        sys.exit(130)
