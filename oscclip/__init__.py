@@ -61,11 +61,11 @@ def _parse_osc52_response(data: bytes) -> bytes:
     return base64.b64decode(data[7:-2])
 
 
-def osc52_copy(data: bytes, primary: bool, direct: bool):
+def osc52_copy(data: bytes, primary: bool, bypass: bool):
     data_enc = base64.b64encode(data)
     clipboard = b"p" if primary else b"c"
     buf = b"\033]52;" + clipboard + b";" + data_enc + b"\a"
-    if "TMUX" in os.environ and not direct:
+    if "TMUX" in os.environ and bypass:
         buf = _tmux_dcs_passthrough(buf)
     write_tty(buf)
 
@@ -92,16 +92,16 @@ def osc52_paste(primary: bool) -> bytes:
 def osc_copy():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--bypass",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Bypass terminal multiplexers",
+    )
+    parser.add_argument(
         "-c",
         "--clear",
         action="store_true",
         help="Instead of copying anything, clear the clipboard",
-    )
-    parser.add_argument(
-        "-d",
-        "--direct",
-        action="store_true",
-        help="Bypass terminal multiplexers",
     )
     parser.add_argument(
         "-n",
@@ -129,7 +129,7 @@ def osc_copy():
     if args.trim_newline:
         data = data.strip()
 
-    osc52_copy(data, args.primary, args.direct)
+    osc52_copy(data, args.primary, args.bypass)
 
 
 def osc_paste():
