@@ -89,7 +89,7 @@ def osc52_paste(primary: bool) -> bytes:
         curses.endwin()
 
 
-def osc_copy():
+def _osc_copy():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--bypass",
@@ -130,6 +130,13 @@ def osc_copy():
         data = data.strip()
 
     osc52_copy(data, args.primary, args.bypass)
+
+
+def osc_copy():
+    try:
+        _osc_copy()
+    except KeyboardInterrupt:
+        sys.exit(130)
 
 
 def osc_paste():
