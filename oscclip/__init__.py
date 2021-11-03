@@ -3,10 +3,13 @@
 import argparse
 import base64
 import curses
+import fcntl
 import os
+import selectors
 import subprocess
 import sys
 import time
+from typing import Optional
 
 
 def die(msg: str):
@@ -20,11 +23,21 @@ def write_tty(data: bytes):
         f.flush()
 
 
-def read_tty(terminator: bytes) -> bytes:
+def read_tty(terminator: bytes, timeout: Optional[int]) -> bytes:
+    sel = selectors.DefaultSelector()
     with open("/dev/tty", "rb", buffering=0) as f:
+        fd = f.fileno()
+        flag = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, flag | os.O_NONBLOCK)
+        sel.register(fd, selectors.EVENT_READ)
+
         data = b""
         while terminator not in data:
+            r = sel.select(timeout)
+            if len(r) == 0:
+                break
             data += f.read(1)
+    sel.close()
     return data
 
 
@@ -48,7 +61,9 @@ def _tmux_osc52_paste(primary: bool) -> bytes:
         subprocess.run(["tmux", "refresh-client", "-l"], check=True)
         # It might be a bit racy; give the terminal time.
         time.sleep(0.05)
-        p = subprocess.run(["tmux", "save-buffer", "-"], check=True, capture_output=True)
+        p = subprocess.run(
+            ["tmux", "save-buffer", "-"], check=True, capture_output=True
+        )
     except Exception as e:
         die(f"calling `tmux` failed: {e}")
     return p.stdout
@@ -82,7 +97,11 @@ def osc52_paste(primary: bool) -> bytes:
         curses.noecho()
         curses.cbreak()
         write_tty(buf)
-        return _parse_osc52_response(read_tty(b"\033\\"))
+        resp = read_tty(b"\033\\", 1)
+        if resp == b"":
+            return resp
+        else:
+            return _parse_osc52_response(resp)
     finally:
         curses.nocbreak()
         curses.echo()
@@ -155,6 +174,10 @@ def _osc_paste():
     )
     args = parser.parse_args()
     data = osc52_paste(args.primary)
+    if data == b"":
+        print("No data in clipboard")
+        sys.exit(1)
+
     end = "\n"
     if args.trim_newline:
         data = data.strip()
