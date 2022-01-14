@@ -45,6 +45,10 @@ def _tmux_dcs_passthrough(data: bytes) -> bytes:
     return b"\033Ptmux;\033" + data + b"\033\\"
 
 
+def _screen_dcs_passthrough(data: bytes) -> bytes:
+    return b"\033P" + data + b"\033\\"
+
+
 def _tmux_query_osc52() -> bool:
     p = subprocess.run(["tmux", "show-options", "-s"], check=True, capture_output=True)
     if "set-clipboard on" in p.stdout.decode():
@@ -80,8 +84,11 @@ def osc52_copy(data: bytes, primary: bool, bypass: bool):
     data_enc = base64.b64encode(data)
     clipboard = b"p" if primary else b"c"
     buf = b"\033]52;" + clipboard + b";" + data_enc + b"\a"
-    if "TMUX" in os.environ and bypass:
-        buf = _tmux_dcs_passthrough(buf)
+    if bypass:
+        if "TMUX" in os.environ:
+            buf = _tmux_dcs_passthrough(buf)
+        elif str(os.environ.get("TERM")).startswith("screen"):
+            buf = _screen_dcs_passthrough(buf)
     write_tty(buf)
 
 
