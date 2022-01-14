@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "oscclip"
-version = "0.2.1"
+version = "0.3.0"
 description = "Utilities to access the clipboard via OSC52"
 authors = ["Stefan Tatschner <stefan@rumpelsepp.org>"]
 license = "GPLv3"
