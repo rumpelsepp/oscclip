@@ -12,12 +12,12 @@ import time
 from typing import Optional
 
 
-def die(msg: str):
+def die(msg: str) -> None:
     print(f"error: {msg}", file=sys.stderr)
     sys.exit(1)
 
 
-def write_tty(data: bytes):
+def write_tty(data: bytes) -> None:
     with open("/dev/tty", "wb") as f:
         f.write(data)
         f.flush()
@@ -82,7 +82,7 @@ def _parse_osc52_response(data: bytes) -> bytes:
     return base64.b64decode(data[7:-2])
 
 
-def osc52_copy(data: bytes, primary: bool, bypass: bool):
+def osc52_copy(data: bytes, primary: bool, bypass: bool) -> None:
     data_enc = base64.b64encode(data)
     clipboard = b"p" if primary else b"c"
     buf = b"\033]52;" + clipboard + b";" + data_enc + b"\a"
@@ -117,7 +117,7 @@ def osc52_paste(primary: bool) -> bytes:
         curses.endwin()
 
 
-def _osc_copy():
+def _osc_copy() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--bypass",
@@ -160,14 +160,14 @@ def _osc_copy():
     osc52_copy(data, args.primary, args.bypass)
 
 
-def osc_copy():
+def osc_copy() -> None:
     try:
         _osc_copy()
     except KeyboardInterrupt:
         sys.exit(130)
 
 
-def _osc_paste():
+def _osc_paste() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-n",
@@ -194,7 +194,7 @@ def _osc_paste():
     print(data.decode(), end=end)
 
 
-def osc_paste():
+def osc_paste() -> None:
     try:
         _osc_paste()
     except KeyboardInterrupt:
