@@ -40,6 +40,8 @@ It might be called `python-poetry`, `python3-poetry` or similar!
 Otherwise: https://python-poetry.org/docs/#installation
 
 ```
-$ poetry install 
+$ poetry install [--no-dev]
 $ poetry run ocs-copy
 ```
+
+`--no-dev` omits the development dependencies, such as static code checkers.
