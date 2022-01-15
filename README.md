@@ -21,7 +21,7 @@ Foo
 
 ## Tested Terminals
 
-* foot
+* [foot](https://codeberg.org/dnkl/foot)
 
 
 ## Installation
