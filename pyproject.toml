@@ -6,7 +6,7 @@ authors = ["Stefan Tatschner <stefan@rumpelsepp.org>"]
 license = "GPLv3"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.2"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
