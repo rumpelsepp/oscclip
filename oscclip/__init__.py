@@ -48,9 +48,7 @@ def _screen_dcs_passthrough(data: bytes) -> bytes:
 
 
 def _tmux_query_osc52() -> bool:
-    p = subprocess.run(["tmux", "show-options", "-s"],
-                       check=True,
-                       capture_output=True)
+    p = subprocess.run(["tmux", "show-options", "-s"], check=True, capture_output=True)
     if "set-clipboard on" in p.stdout.decode():
         return True
     return False
@@ -65,9 +63,9 @@ def _tmux_osc52_paste(primary: bool) -> bytes:
         subprocess.run(["tmux", "refresh-client", "-l"], check=True)
         # It might be a bit racy; give the terminal time.
         time.sleep(0.05)
-        p = subprocess.run(["tmux", "save-buffer", "-"],
-                           check=True,
-                           capture_output=True)
+        p = subprocess.run(
+            ["tmux", "save-buffer", "-"], check=True, capture_output=True
+        )
     except Exception as e:
         die(f"calling `tmux` failed: {e}")
     return p.stdout
