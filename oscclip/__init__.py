@@ -2,12 +2,13 @@ import argparse
 import base64
 import curses
 import fcntl
+import io
 import os
 import selectors
 import subprocess
 import sys
 import time
-from typing import Optional
+from importlib.metadata import version
 
 
 def die(msg: str) -> None:
@@ -21,7 +22,7 @@ def write_tty(data: bytes) -> None:
         f.flush()
 
 
-def read_tty(terminator: bytes, timeout: Optional[int]) -> bytes:
+def read_tty(terminator: bytes, timeout: int | None) -> bytes:
     sel = selectors.DefaultSelector()
     with open("/dev/tty", "rb", buffering=0) as f:
         fd = f.fileno()
@@ -34,7 +35,7 @@ def read_tty(terminator: bytes, timeout: Optional[int]) -> bytes:
             r = sel.select(timeout)
             if len(r) == 0:
                 break
-            data += f.read(1)
+            data += f.read(io.DEFAULT_BUFFER_SIZE)
     sel.close()
     return data
 
@@ -72,10 +73,9 @@ def _tmux_osc52_paste(primary: bool) -> bytes:
 
 
 def _parse_osc52_response(data: bytes) -> bytes:
-    # TODO: Make indices more robust.
-    if data[:5] != b"\033]52;" or data[-2:] != b"\033\\":
+    if len(data) < 6 and (data[:5] != b"\033]52;" or data[-2:] != b"\033\\"):
         raise RuntimeError(f"received invalid OSC52 response: {str(data)}")
-    return base64.b64decode(data[7:-2])
+    return base64.b64decode(data[7:-1])
 
 
 def osc52_copy(data: bytes, primary: bool, bypass: bool) -> None:
@@ -102,7 +102,7 @@ def osc52_paste(primary: bool) -> bytes:
         curses.noecho()
         curses.cbreak()
         write_tty(buf)
-        resp = read_tty(b"\033\\", 1)
+        resp = read_tty(b"\a", 1)
         if resp == b"":
             return resp
         else:
@@ -119,30 +119,35 @@ def _osc_copy() -> None:
         "--bypass",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="Bypass terminal multiplexers",
+        help="bypass terminal multiplexers",
     )
     parser.add_argument(
         "-c",
         "--clear",
         action="store_true",
-        help="Instead of copying anything, clear the clipboard",
+        help="instead of copying anything, clear the clipboard",
     )
     parser.add_argument(
         "-n",
         "--trim-newline",
         action="store_true",
-        help="Do not copy the trailing newline character",
+        help="do not copy the trailing newline character",
     )
     parser.add_argument(
         "-p",
         "--primary",
         action="store_true",
-        help='Use the "primary" clipboard',
+        help='use the "primary" clipboard',
     )
     parser.add_argument(
         "text",
         nargs="?",
-        help="Text to copy",
+        help="text to copy",
+    )
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=f'%(prog)s {version("oscclip")}',
     )
     args = parser.parse_args()
 
@@ -169,13 +174,18 @@ def _osc_paste() -> None:
         "-n",
         "--trim-newline",
         action="store_true",
-        help="Do not copy the trailing newline character",
+        help="do not copy the trailing newline character",
     )
     parser.add_argument(
         "-p",
         "--primary",
         action="store_true",
-        help='Use the "primary" clipboard',
+        help='use the "primary" clipboard',
+    )
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=f'%(prog)s {version("oscclip")}',
     )
     args = parser.parse_args()
     data = osc52_paste(args.primary)
@@ -183,11 +193,13 @@ def _osc_paste() -> None:
         print("No data in clipboard")
         sys.exit(1)
 
-    end = "\n"
     if args.trim_newline:
         data = data.strip()
-        end = ""
-    print(data.decode(), end=end)
+        end = b""
+    else:
+        end = b"" if data[-1] == ord("\n") else b"\n"
+
+    sys.stdout.buffer.write(data + end)
 
 
 def osc_paste() -> None:
