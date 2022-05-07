@@ -23,12 +23,4 @@ osc-copy = "oscclip:osc_copy"
 osc-paste = "oscclip:osc_paste"
 
 [tool.mypy]
-disallow_any_unimported = true
-check_untyped_defs = true
-ignore_missing_imports = true
-allow_redefinition = true
-warn_unreachable = true
-disallow_untyped_calls = true
-strict_equality = true
-disallow_untyped_defs = true
-warn_unused_ignores = true
+strict = true
