@@ -1,9 +1,15 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "oscclip"
 version = "0.3.0"
 description = "Utilities to access the clipboard via OSC52"
 authors = ["Stefan Tatschner <stefan@rumpelsepp.org>"]
 license = "GPLv3"
+readme = "README.md"
+repository = "https://github.com/rumpelsepp/oscclip"
 
 [tool.poetry.dependencies]
 python = "^3.6.2"
@@ -11,10 +17,6 @@ python = "^3.6.2"
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
 mypy = "^0.950"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 osc-copy = "oscclip:osc_copy"
