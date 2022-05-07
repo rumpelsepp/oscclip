@@ -105,8 +105,7 @@ def osc52_paste(primary: bool) -> bytes:
         resp = read_tty(b"\a", 1)
         if resp == b"":
             return resp
-        else:
-            return _parse_osc52_response(resp)
+        return _parse_osc52_response(resp)
     finally:
         curses.nocbreak()
         curses.echo()
@@ -145,8 +144,8 @@ def _osc_copy() -> None:
         help="text to copy",
     )
     parser.add_argument(
-        '--version',
-        action='version',
+        "--version",
+        action="version",
         version=f'%(prog)s {version("oscclip")}',
     )
     args = parser.parse_args()
@@ -183,8 +182,8 @@ def _osc_paste() -> None:
         help='use the "primary" clipboard',
     )
     parser.add_argument(
-        '--version',
-        action='version',
+        "--version",
+        action="version",
         version=f'%(prog)s {version("oscclip")}',
     )
     args = parser.parse_args()

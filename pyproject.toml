@@ -26,3 +26,19 @@ osc-paste = "oscclip:osc_paste"
 
 [tool.mypy]
 strict = true
+
+[tool.black]
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+
+[tool.pylint.messages_control]
+disable = [
+    "broad-except",
+    "invalid-name",
+    "missing-class-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "missing-module-docstring",
+]
