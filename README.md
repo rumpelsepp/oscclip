@@ -29,6 +29,13 @@ Foo
 
 * [foot](https://codeberg.org/dnkl/foot)
 
+## Caveats
+
+### tmux
+
+Currently there is a [bug](https://github.com/tmux/tmux/pull/2942) in `tmux`.
+Due to this `osc-paste` does currently not work with `tmux` running in `foot`.
+The bug is fixed in upstream `tmux` but not yet released.
 
 ## Installation
 
