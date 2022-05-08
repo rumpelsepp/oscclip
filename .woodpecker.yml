@@ -1,8 +1,0 @@
-pipeline:
-  setup:
-    image: archlinux:latest
-    commands:
-      - pacman -Syu --noconfirm python-poetry
-      - poetry install
-      - poetry run mypy oscclip
-      - poetry run flake8 oscclip
