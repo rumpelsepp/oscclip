@@ -15,7 +15,7 @@ repository = "https://github.com/rumpelsepp/oscclip"
 python = ">=3.10,<4.0"
 
 [tool.poetry.dev-dependencies]
-black = "^22.1.0"
+black = "^22.6.0"
 flake8 = "^4.0.1"
 isort = "^5.10.1"
 mypy = "^0.961"
