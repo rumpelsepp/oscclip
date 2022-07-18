@@ -117,7 +117,7 @@ def _osc_copy() -> None:
     parser.add_argument(
         "--bypass",
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=False,
         help="bypass terminal multiplexers",
     )
     parser.add_argument(
