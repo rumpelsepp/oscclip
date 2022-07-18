@@ -27,6 +27,7 @@ Foo
 
 ## Tested Terminals
 
+* [alacritty](https://github.com/alacritty/alacritty)
 * [foot](https://codeberg.org/dnkl/foot)
 
 For a list of terminals that support OSC52, see [this table](https://github.com/ojroques/vim-oscyank#vim-oscyank).
