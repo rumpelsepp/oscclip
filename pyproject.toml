@@ -19,7 +19,7 @@ black = "^22.8.0"
 flake8 = "^5.0.4"
 isort = "^5.10.1"
 mypy = "^0.971"
-pylint = "^2.15.0"
+pylint = "^2.15.2"
 
 [tool.poetry.scripts]
 osc-copy = "oscclip:osc_copy"
