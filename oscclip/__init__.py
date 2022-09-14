@@ -48,11 +48,19 @@ def _screen_dcs_passthrough(data: bytes) -> bytes:
     return b"\033P" + data + b"\033\\"
 
 
-def _tmux_query_osc52() -> bool:
+def _tmux_query(option: str) -> bool:
     p = subprocess.run(["tmux", "show-options", "-s"], check=True, capture_output=True)
-    if "set-clipboard on" in p.stdout.decode():
+    if option in p.stdout.decode():
         return True
     return False
+
+
+def _tmux_query_osc52() -> bool:
+    return _tmux_query("set-clipboard on")
+
+
+def _tmux_query_passthrough() -> bool:
+    return _tmux_query("allow-passthrough on") or _tmux_query("allow-passthrough all")
 
 
 def _tmux_osc52_paste(primary: bool) -> bytes:
@@ -84,6 +92,9 @@ def osc52_copy(data: bytes, primary: bool, bypass: bool) -> None:
     buf = b"\033]52;" + clipboard + b";" + data_enc + b"\a"
     if bypass:
         if "TMUX" in os.environ:
+            if not _tmux_query_passthrough():
+                print("tmux option `allow-passthrough` is not set.", file=sys.stderr)
+                print("`--bypass` may not work.", file=sys.stderr)
             buf = _tmux_dcs_passthrough(buf)
         elif str(os.environ.get("TERM")).startswith("screen"):
             buf = _screen_dcs_passthrough(buf)
