@@ -39,6 +39,10 @@ For a list of terminals that support OSC52, see [this table](https://github.com/
 There is a [bug](https://github.com/tmux/tmux/pull/2942) in `tmux` 
 Due to this `osc-paste` does not work with `tmux < 3.3` running in `foot`.
 
+In order to make `--bypass` work, `allow-passthrough` must be enabled.
+Check the manpage of `tmux`.
+`osc-copy` issues a warning to `stderr` when this option is not set and `--bypass` is present.
+
 ## Installation
 
 **Arch Linux**
