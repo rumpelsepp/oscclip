@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2022-09-12
+### Changed
+
+- Changed the default of bypassing to `--no-bypass`, since tmux has disabled this option by default. It can be enabled with `allow-passthrough`.
+
 ## [0.4.0] - 2022-05-08
 ### Added
 
