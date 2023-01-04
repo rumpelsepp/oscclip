@@ -16,10 +16,10 @@ python = ">=3.10,<4.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.8.0"
-flake8 = "^5.0.4"
 isort = "^5.10.1"
-mypy = "^0.971"
+mypy = "^0.991"
 pylint = "^2.15.2"
+ruff = "^0.0.209"
 
 [tool.poetry.scripts]
 osc-copy = "oscclip:osc_copy"
