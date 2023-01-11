@@ -18,8 +18,12 @@ python = ">=3.10,<4.0"
 black = "^22.8.0"
 isort = "^5.10.1"
 mypy = "^0.991"
-pylint = "^2.15.2"
-ruff = "^0.0.209"
+ruff = "^0.0.218"
+python-lsp-ruff = "^1.0.4"
+pylsp-mypy = "^0.6.5"
+python-lsp-server = "^1.7.0"
+python-lsp-black = "^1.2.1"
+
 
 [tool.poetry.scripts]
 osc-copy = "oscclip:osc_copy"
