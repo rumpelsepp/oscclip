@@ -24,7 +24,6 @@ pylsp-mypy = "^0.6.5"
 python-lsp-server = "^1.7.0"
 python-lsp-black = "^1.2.1"
 
-
 [tool.poetry.scripts]
 osc-copy = "oscclip:osc_copy"
 osc-paste = "oscclip:osc_paste"
@@ -37,13 +36,3 @@ target-version = ['py310']
 
 [tool.isort]
 profile = "black"
-
-[tool.pylint.messages_control]
-disable = [
-    "broad-except",
-    "invalid-name",
-    "missing-class-docstring",
-    "missing-class-docstring",
-    "missing-function-docstring",
-    "missing-module-docstring",
-]
