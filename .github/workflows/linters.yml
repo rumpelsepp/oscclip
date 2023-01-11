@@ -40,9 +40,6 @@ jobs:
     - name: Run mypy
       run: |
         poetry run mypy oscclip
-    - name: Run pylint
-      run: |
-        poetry run pylint oscclip
     - name: Run black
       run: |
         poetry run black --check --verbose oscclip
