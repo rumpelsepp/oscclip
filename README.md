@@ -1,5 +1,11 @@
 # oscclip
 
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/oscclip)](https://pypi.python.org/pypi/oscclip/)
+[![PyPI - License](https://img.shields.io/pypi/l/oscclip)](https://www.gnu.org/licenses/gpl-3.0.txt)
+[![PyPI](https://img.shields.io/pypi/v/oscclip)](https://pypi.python.org/pypi/oscclip/)
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/oscclip.svg)](https://repology.org/project/oscclip/versions)
+
 `oscclip` is a little, zero dependency python utility which utilizes the system clipboard via OSC52 escape sequences.
 Using these sequences, the system clipboard is accessible via SSH as well.
 Terminal multiplexers, such as `tmux` and `screen` are supported.
@@ -51,6 +57,10 @@ Check the manpage of `tmux`.
 $ paru -S oscclip
 ```
 
+**NixOS**
+
+```
+
 **Run via poetry**
 
 Check if your distribution provides [`poetry`](https://python-poetry.org) via its package management system!
@@ -60,7 +70,7 @@ Otherwise: https://python-poetry.org/docs/#installation
 
 ```
 $ poetry install [--no-dev]
-$ poetry run ocs-copy
+$ poetry run osc-copy
 ```
 
 `--no-dev` omits the development dependencies, such as static code checkers.
