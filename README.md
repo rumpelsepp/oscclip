@@ -60,6 +60,8 @@ $ paru -S oscclip
 **NixOS**
 
 ```
+$ nix-shell -p oscclip
+```
 
 **Run via poetry**
 
