@@ -16,13 +16,12 @@ python = ">=3.10,<3.12"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.8.0"
-isort = "^5.10.1"
 mypy = "^0.991"
-ruff = "^0.0.218"
-python-lsp-ruff = "^1.0.4"
+ruff = "^0.0.238"
 pylsp-mypy = "^0.6.5"
-python-lsp-server = "^1.7.0"
 python-lsp-black = "^1.2.1"
+python-lsp-ruff = "^1.0.4"
+python-lsp-server = "^1.7.0"
 
 [tool.poetry.scripts]
 osc-copy = "oscclip:osc_copy"
@@ -34,5 +33,5 @@ strict = true
 [tool.black]
 target-version = ['py310']
 
-[tool.isort]
-profile = "black"
+[tool.ruff]
+select = ["E", "F", "PL", "I"]

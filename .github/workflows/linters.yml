@@ -36,7 +36,7 @@ jobs:
         poetry install
     - name: Run ruff
       run: |
-        poetry run ruff oscclip
+        poetry run ruff check oscclip
     - name: Run mypy
       run: |
         poetry run mypy oscclip

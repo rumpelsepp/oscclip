@@ -81,7 +81,8 @@ def _tmux_osc52_paste(primary: bool) -> bytes:
 
 
 def _parse_osc52_response(data: bytes) -> bytes:
-    if len(data) < 6 and (data[:5] != b"\033]52;" or data[-2:] != b"\033\\"):
+    prefix_len = 6
+    if len(data) < prefix_len and (data[:5] != b"\033]52;" or data[-2:] != b"\033\\"):
         raise RuntimeError(f"received invalid OSC52 response: {str(data)}")
     return base64.b64decode(data[7:-1])
 
