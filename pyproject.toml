@@ -7,7 +7,7 @@ name = "oscclip"
 version = "0.4.1"
 description = "Utilities to access the clipboard via OSC52"
 authors = ["Stefan Tatschner <stefan@rumpelsepp.org>"]
-license = "GPLv3"
+license = "MIT"
 readme = "README.md"
 repository = "https://github.com/rumpelsepp/oscclip"
 
