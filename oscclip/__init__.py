@@ -202,7 +202,7 @@ def _osc_paste() -> None:
     args = parser.parse_args()
     data = osc52_paste(args.primary)
     if data == b"":
-        print("No data in clipboard")
+        print("No data in clipboard", file=sys.stderr)
         sys.exit(1)
 
     if args.trim_newline:
