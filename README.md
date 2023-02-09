@@ -71,8 +71,6 @@ It might be called `python-poetry`, `python3-poetry` or similar!
 Otherwise: https://python-poetry.org/docs/#installation
 
 ```
-$ poetry install [--no-dev]
+$ poetry install
 $ poetry run osc-copy
 ```
-
-`--no-dev` omits the development dependencies, such as static code checkers.
