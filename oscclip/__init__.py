@@ -5,6 +5,7 @@ import fcntl
 import io
 import os
 import selectors
+import signal
 import subprocess
 import sys
 import time
@@ -176,7 +177,7 @@ def osc_copy() -> None:
     try:
         _osc_copy()
     except KeyboardInterrupt:
-        sys.exit(130)
+        sys.exit(128 + signal.SIGINT)
 
 
 def _osc_paste() -> None:
@@ -217,4 +218,4 @@ def osc_paste() -> None:
     try:
         _osc_paste()
     except KeyboardInterrupt:
-        sys.exit(130)
+        sys.exit(128 + signal.SIGINT)
