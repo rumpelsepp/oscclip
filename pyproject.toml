@@ -15,9 +15,9 @@ repository = "https://github.com/rumpelsepp/oscclip"
 python = ">=3.10,<3.12"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.8.0"
-mypy = "^0.991"
-ruff = "^0.0.238"
+black = "^23.1.0"
+mypy = "^1.0"
+ruff = "^0.0.244"
 pylsp-mypy = "^0.6.5"
 python-lsp-black = "^1.2.1"
 python-lsp-ruff = "^1.0.4"
