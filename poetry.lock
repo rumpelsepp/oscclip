@@ -241,20 +241,20 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pylsp-mypy"
-version = "0.6.5"
+version = "0.6.6"
 description = "Mypy linter for the Python LSP Server"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pylsp-mypy-0.6.5.tar.gz", hash = "sha256:14bff75ee48cf958f0f85b5a8a93ae2f43d4c4bb581a6a6effd182daf6ae17a4"},
-    {file = "pylsp_mypy-0.6.5-py3-none-any.whl", hash = "sha256:4a78af649546642d31478fb7c6089e840418f51c2216ef6f1bb200e6b70900a5"},
+    {file = "pylsp-mypy-0.6.6.tar.gz", hash = "sha256:aa5d547b25ca431b5b17689c495c55aa374b19b35c59746987e417044fb722ce"},
+    {file = "pylsp_mypy-0.6.6-py3-none-any.whl", hash = "sha256:46666ffa282e1b44b86b3b03f55b95ca12df82af77c88cf4b85fba3d532b7290"},
 ]
 
 [package.dependencies]
 mypy = "*"
 python-lsp-server = ">=1.7.0"
-toml = "*"
+tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
 test = ["coverage", "pytest", "pytest-cov", "tox"]
