@@ -17,7 +17,7 @@ python = ">=3.10,<3.12"
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
 mypy = "^1.0"
-ruff = ">=0.0.244,<0.0.276"
+ruff = ">=0.0.244,<0.0.283"
 pylsp-mypy = "^0.6.5"
 python-lsp-black = "^1.2.1"
 python-lsp-ruff = "^1.0.4"
