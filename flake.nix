@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: AISEC Pentesting Team
+# SPDX-FileCopyrightText: Stefan Tatschner
 #
 # SPDX-License-Identifier: CC0-1.0
 
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
+    nixpkgs.url = "nixpkgs";
   };
 
   outputs = { self, nixpkgs }:
@@ -13,12 +13,11 @@
     in {
       devShell.x86_64-linux = pkgs.mkShell {
         buildInputs = with pkgs; [ 
-          poetry
-          python310
+          go
+          gnumake
+          gopls
+          gotools
         ];
-        shellHook = ''
-          LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [stdenv.cc.cc]}
-        '';
       };
       formatter.x86_64-linux = pkgs.nixpkgs-fmt;
     };
