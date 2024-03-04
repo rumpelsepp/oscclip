@@ -34,12 +34,12 @@ func ParseOSC52Resp(raw []byte) (*OSC52Response, error) {
 
 	// Check OSC52 header.
 	if !bytes.Equal(raw[:prefixLen], []byte("\x1b]52")) {
-		return nil, fmt.Errorf("invalid OSC52 header: %x", raw[:prefixLen])
+		return nil, fmt.Errorf("invalid OSC52 header: %q", raw[:prefixLen])
 	}
 
 	// Check OSC52 terminator.
 	if raw[len(raw)-1] != '\a' {
-		return nil, fmt.Errorf("invalid OSC52 data; invalid terminator: %x", raw)
+		return nil, fmt.Errorf("invalid OSC52 data; invalid terminator: %q", raw)
 	}
 
 	// Strip header.
@@ -55,7 +55,7 @@ func ParseOSC52Resp(raw []byte) (*OSC52Response, error) {
 		prefixLen = 2
 	} else {
 		// Variant 3: Data is invalid.
-		return nil, fmt.Errorf("invalid OSC52 arguments: %x", raw)
+		return nil, fmt.Errorf("invalid OSC52 arguments: %q", raw)
 	}
 
 	// Strip arguments and terminator.
