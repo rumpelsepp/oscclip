@@ -107,6 +107,7 @@ func main() {
 	if err != nil {
 		die(err.Error(), 1)
 	}
+
 	reader := bufio.NewReader(tty)
 	slice, err := reader.ReadSlice('\a')
 	if err != nil {
