@@ -21,20 +21,54 @@ type cli struct {
 	Version bool `kong:"help='Print version information and exit'"`
 }
 
-func parseOSC52Resp(data []byte) ([]byte, error) {
-	prefix_len := 6
-	if len(data) < prefix_len && (!bytes.Equal(data[:5], []byte("\033]52;")) || !bytes.Equal(data[len(data)-2:], []byte("\033\\"))) {
-		return nil, fmt.Errorf("got invalid OSC52 response: %x", data)
-	}
+type OSC52Response struct {
+	Source string
+	Data   []byte
+}
 
+func ParseOSC52Resp(raw []byte) (*OSC52Response, error) {
 	var (
-		dataBuf = data[6 : len(data)-1]
-		bufSize = base64.StdEncoding.DecodedLen(len(dataBuf))
-		buf     = make([]byte, bufSize)
+		prefixLen = 4
+		source    string
 	)
 
-	n, err := base64.StdEncoding.Decode(buf, dataBuf)
-	return buf[:n], err
+	// Check OSC52 header.
+	if !bytes.Equal(raw[:prefixLen], []byte("\x1b]52")) {
+		return nil, fmt.Errorf("invalid OSC52 header: %x", raw[:prefixLen])
+	}
+
+	// Check OSC52 terminator.
+	if raw[len(raw)-1] != '\a' {
+		return nil, fmt.Errorf("invalid OSC52 data; invalid terminator: %x", raw)
+	}
+
+	// Strip header.
+	raw = raw[prefixLen:]
+
+	if raw[0] == ';' && raw[2] == ';' {
+		// Variant 1: source is set.
+		source = string(raw[1])
+		prefixLen = 3
+	} else if raw[0] == ';' && raw[1] == ';' && raw[2] != ';' {
+		// Variant 2: source is unset.
+		source = "c"
+		prefixLen = 2
+	} else {
+		// Variant 3: Data is invalid.
+		return nil, fmt.Errorf("invalid OSC52 arguments: %x", raw)
+	}
+
+	// Strip arguments and terminator.
+	raw = raw[prefixLen : len(raw)-1]
+
+	bufSize := base64.StdEncoding.DecodedLen(len(raw))
+	data := make([]byte, bufSize)
+	n, err := base64.StdEncoding.Decode(data, raw)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %q", err, raw)
+	}
+
+	return &OSC52Response{Source: source, Data: data[:n]}, nil
 }
 
 func die(msg string, code int) {
@@ -81,20 +115,22 @@ func main() {
 	tty.Stop()
 	tty.Close()
 
-	response, err := parseOSC52Resp(slice)
+	resp, err := ParseOSC52Resp(slice)
 	if err != nil {
 		die(err.Error(), 1)
 	}
 
+	data := resp.Data
+
 	if args.Trim {
-		response = bytes.TrimSpace(response)
+		data = bytes.TrimSpace(data)
 	}
 
-	if !bytes.HasSuffix(response, []byte("\n")) {
-		response = append(response, '\n')
+	if !bytes.HasSuffix(data, []byte("\n")) {
+		data = append(data, '\n')
 	}
 
-	if _, err := io.Copy(os.Stderr, bytes.NewReader(response)); err != nil {
+	if _, err := io.Copy(os.Stderr, bytes.NewReader(data)); err != nil {
 		die(err.Error(), 1)
 	}
 }
