@@ -3,7 +3,7 @@ module github.com/rumpelsepp/oscclip
 go 1.21
 
 require (
-	github.com/alecthomas/kong v0.8.1
+	github.com/alecthomas/kong v0.9.0
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1
 	github.com/gdamore/tcell/v2 v2.7.1
 )
