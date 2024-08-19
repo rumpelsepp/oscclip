@@ -1,5 +1,7 @@
 # oscclip
 
+**There is a better maintained alternative available; just use this instead: https://github.com/theimpostor/osc**
+
 [![Packaging status](https://repology.org/badge/vertical-allrepos/oscclip.svg)](https://repology.org/project/oscclip/versions)
 
 `oscclip` is a utility which utilizes the system clipboard via OSC52 escape sequences.
