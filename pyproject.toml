@@ -4,7 +4,7 @@
 
 [project]
 name = "oscclip"
-version = "0.6.0"
+version = "0.5.0"
 description = "Access the system clipboard via terminal escape sequences (OSC 52 and the kitty clipboard protocol)"
 readme = "README.md"
 license = "EUPL-1.2"
