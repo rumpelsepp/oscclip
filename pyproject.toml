@@ -18,7 +18,6 @@ dependencies = []
 [project.urls]
 Homepage = "https://github.com/rumpelsepp/oscclip"
 Issues = "https://github.com/rumpelsepp/oscclip/issues"
-Changelog = "https://github.com/rumpelsepp/oscclip/blob/master/CHANGELOG.md"
 
 [project.scripts]
 osc-copy = "oscclip.osc_copy:main"
