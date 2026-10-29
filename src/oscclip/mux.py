@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Stefan Tatschner
 #
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: EUPL-1.2
 
 """Terminal multiplexer (tmux and GNU screen) passthrough support."""
 

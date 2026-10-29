@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Stefan Tatschner
 #
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: EUPL-1.2
 
 """Shared command line plumbing for the oscclip tools."""
 

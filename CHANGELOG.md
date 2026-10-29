@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] - XXXX-XX-XX
 ### Changed
 
+- License changed to EUPL 1.2.
 - Rewrite in Python; the project is managed with uv now.  Project tasks are
   defined in a justfile.  Linting and type checking is done with ruff,
   mypy --strict and ty.

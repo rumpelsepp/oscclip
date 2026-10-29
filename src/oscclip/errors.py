@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Stefan Tatschner
 #
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: EUPL-1.2
 
 """Exception types shared by the clipboard protocol implementations."""
 

@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: Stefan Tatschner
 #
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: EUPL-1.2
 
 [project]
 name = "oscclip"
 version = "0.6.0"
 description = "Access the system clipboard via terminal escape sequences (OSC 52 and the kitty clipboard protocol)"
 readme = "README.md"
-license = "MIT"
+license = "EUPL-1.2"
 license-files = ["LICENSE"]
 authors = [
     { name = "Stefan Tatschner", email = "stefan@rumpelsepp.org" },
