@@ -30,10 +30,10 @@ def write_sequence(*, primary: bool = False) -> bytes:
     return OSC + b"5522;" + _meta(b"type=write", primary) + ST
 
 
-def wdata_sequence(mime: str, chunk: bytes) -> bytes:
-    """Build an OSC 5522 data packet for a single chunk."""
+def wdata_sequence(mime: str, payload: bytes) -> bytes:
+    """Build an OSC 5522 data packet for a single base64 encoded chunk."""
     mime_b64 = base64.b64encode(mime.encode())
-    return OSC + b"5522;type=wdata:mime=" + mime_b64 + b";" + base64.b64encode(chunk) + ST
+    return OSC + b"5522;type=wdata:mime=" + mime_b64 + b";" + payload + ST
 
 
 def wdata_end_sequence() -> bytes:
@@ -47,22 +47,21 @@ def read_sequence(mime_types: Sequence[str], *, primary: bool = False) -> bytes:
     return OSC + b"5522;" + _meta(b"type=read", primary) + b";" + payload + ST
 
 
-def chunks(data: bytes, size: int = CHUNK_SIZE) -> Iterator[bytes]:
-    """Split data into chunks of at most 4096 bytes."""
-    for offset in range(0, len(data), size):
-        yield data[offset : offset + size]
-
-
 def write_sequences(
     data: bytes,
     *,
     mime: str = "text/plain",
     primary: bool = False,
 ) -> Iterator[bytes]:
-    """Yield all sequences of a clipboard write request."""
+    """Yield all sequences of a clipboard write request.
+
+    The data is base64 encoded first and then chunked up into chunks of at
+    most 4096 bytes, as required by the protocol.
+    """
     yield write_sequence(primary=primary)
-    for chunk in chunks(data):
-        yield wdata_sequence(mime, chunk)
+    encoded = base64.b64encode(data)
+    for offset in range(0, len(encoded), CHUNK_SIZE):
+        yield wdata_sequence(mime, encoded[offset : offset + CHUNK_SIZE])
     yield wdata_end_sequence()
 
 

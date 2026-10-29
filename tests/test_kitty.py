@@ -87,7 +87,7 @@ def test_write_primary(make_tty: Callable[..., FakeTty]) -> None:
 
 
 def test_write_chunking(make_tty: Callable[..., FakeTty]) -> None:
-    data = bytes(range(256)) * 20  # 5120 bytes
+    data = bytes(range(256)) * 20  # 5120 bytes -> 6828 base64 characters
     tty = make_tty(write_done())
     kitty.write(tty, data, timeout=0.1)
     wdata = tty.written[1:-1]
@@ -97,9 +97,9 @@ def test_write_chunking(make_tty: Callable[..., FakeTty]) -> None:
         match = kitty.PACKET_RE.search(entry)
         assert match is not None
         assert match.group(2) is not None
-        chunks.append(base64.b64decode(match.group(2)))
-    assert [len(c) for c in chunks] == [4096, 1024]
-    assert b"".join(chunks) == data
+        chunks.append(match.group(2))
+    assert [len(chunk) for chunk in chunks] == [4096, 2732]
+    assert base64.b64decode(b"".join(chunks)) == data
 
 
 def test_write_empty_data(make_tty: Callable[..., FakeTty]) -> None:
@@ -222,18 +222,19 @@ def test_write_sequences_primary() -> None:
 
 
 def test_write_sequences_chunking() -> None:
-    data = bytes(range(256)) * 20  # 5120 bytes
+    data = bytes(10000)  # 13336 base64 characters -> 4 chunks
     sequences = list(build.write_sequences(data))
+    encoded = base64.b64encode(data)
     wdata = sequences[1:-1]
-    assert len(wdata) == 2
-    decoded = []
+    assert len(wdata) == 4
+    chunks = []
     for entry in wdata:
         match = kitty.PACKET_RE.search(entry)
         assert match is not None
         assert match.group(2) is not None
-        decoded.append(base64.b64decode(match.group(2)))
-    assert [len(chunk) for chunk in decoded] == [4096, 1024]
-    assert b"".join(decoded) == data
+        chunks.append(match.group(2))
+    assert b"".join(chunks) == encoded
+    assert [len(chunk) for chunk in chunks] == [4096, 4096, 4096, 1048]
 
 
 def _packet(

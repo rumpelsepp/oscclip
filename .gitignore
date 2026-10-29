@@ -13,6 +13,5 @@ build/
 # Environments
 .venv/
 
-# Legacy build artifacts
-/osc-copy
-/osc-paste
+# Scratch files
+*.png
