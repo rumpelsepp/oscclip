@@ -158,7 +158,8 @@ def paste_image(term: Terminal, settings: Settings = DEFAULT_SETTINGS) -> None:
     if mime is None:
         raise ClipboardError("no image available on the clipboard")
     data = kitty.read(tty, [mime], primary=settings.primary, timeout=settings.timeout)
-    if not (image := data.get(mime, b"")):
+    image = data.get(mime, b"")
+    if not image:
         raise ClipboardError("no image available on the clipboard")
     graphics.display(tty, image, mime=mime, timeout=settings.timeout)
 
