@@ -37,12 +37,18 @@ PNG = (
     + b"\x08\x06\x00\x00\x00data"
 )
 
-#: ghostty 1.4.0 corrupts binary payloads containing NUL bytes in OSC 5522
-#: clipboard writes: the data is correct up to the first NUL byte and
-#: garbage afterwards.  The strict marker turns into a failure once a
-#: fixed ghostty makes the test pass.
+#: libghostty-vt 1.4.0 hands the clipboard write callback inconsistent
+#: pointer/length data when the payload contains NUL bytes: the bytes up to
+#: the first NUL are correct, the length stays unchanged, and reading it
+#: yields memory past the internal buffer.  This is an issue of the C API
+#: handoff, not of the terminal: the real ghostty terminal reads the
+#: clipboard data on its Zig side and image round trips were verified to
+#: be byte-identical there.  The strict marker turns into a failure once a
+#: fixed libghostty-vt makes the test pass.
 GHOSTTY_NUL_BUG = pytest.mark.xfail(
-    reason="ghostty 1.4.0 corrupts binary payloads with NUL bytes in OSC 5522 writes",
+    reason="libghostty-vt 1.4.0 hands the write callback inconsistent "
+    "pointer/length data for payloads with NUL bytes; the real ghostty "
+    "terminal is unaffected",
     strict=True,
 )
 
