@@ -42,10 +42,6 @@ _SUPPORTED_MODES = frozenset("123")
 #: Matches OSC 5522 packets with either BEL or ST terminator.
 PACKET_RE = re.compile(rb"\x1b\]5522;([^\x1b\x07;]*)(?:;([A-Za-z0-9+/=]*))?(?:\x07|\x1b\\)")
 
-_STATUS_OK = "OK"
-_STATUS_DATA = "DATA"
-_STATUS_DONE = "DONE"
-
 _ERROR_MESSAGES = {
     "EIO": "an I/O error occurred while processing the clipboard data",
     "EINVAL": "the terminal rejected the clipboard data as invalid",
@@ -87,24 +83,24 @@ def write(
     timeout: float,
 ) -> None:
     """Write data to the system clipboard and wait for the terminal's confirmation."""
-    meta = b"type=write"
-    if primary:
-        meta += b":loc=primary"
-    tty.write(OSC + b"5522;" + meta + ST)
+    tty.write(OSC + b"5522;" + _meta(b"type=write", primary) + ST)
     mime_b64 = base64.b64encode(mime.encode())
     for chunk in _chunks(data):
         tty.write(OSC + b"5522;type=wdata:mime=" + mime_b64 + b";" + base64.b64encode(chunk) + ST)
     tty.write(OSC + b"5522;type=wdata" + ST)
 
-    match = tty.read_until([PACKET_RE], timeout)
-    if match is None:
+    response = tty.read_until([PACKET_RE], timeout)
+    if response is None:
         raise ClipboardTimeoutError("the terminal did not confirm the clipboard write request")
-    packet = _parse_packet(match)
-    if packet.type == "write" and packet.status == _STATUS_DONE:
-        return
-    if packet.status in _ERROR_MESSAGES:
-        _raise_for_status(packet.status)
-    raise ClipboardProtocolError(f"unexpected response to the clipboard write request: {packet}")
+    match _parse_packet(response):
+        case Packet(type="write", status="DONE"):
+            return
+        case Packet(status=status) if status in _ERROR_MESSAGES:
+            _raise_for_status(status)
+        case packet:
+            raise ClipboardProtocolError(
+                f"unexpected response to the clipboard write request: {packet}"
+            )
 
 
 def read(
@@ -115,40 +111,47 @@ def read(
     timeout: float,
 ) -> dict[str, bytes]:
     """Read the given MIME types from the system clipboard."""
-    meta = b"type=read"
-    if primary:
-        meta += b":loc=primary"
     payload = base64.b64encode(" ".join(mime_types).encode())
-    tty.write(OSC + b"5522;" + meta + b";" + payload + ST)
+    tty.write(OSC + b"5522;" + _meta(b"type=read", primary) + b";" + payload + ST)
 
     result: dict[str, bytes] = {}
     while True:
-        match = tty.read_until([PACKET_RE], timeout)
-        if match is None:
+        response = tty.read_until([PACKET_RE], timeout)
+        if response is None:
             raise ClipboardTimeoutError(
                 "the terminal did not respond to the clipboard read request"
             )
-        packet = _parse_packet(match)
+        packet = _parse_packet(response)
         if packet.type != "read":
             raise ClipboardProtocolError(
                 f"unexpected packet type in clipboard read response: {packet.type}"
             )
-        if packet.status in _ERROR_MESSAGES:
-            _raise_for_status(packet.status)
-        if packet.status == _STATUS_DATA:
-            result[packet.mime] = result.get(packet.mime, b"") + packet.payload
-        elif packet.status == _STATUS_DONE:
-            return result
-        elif packet.status != _STATUS_OK:
-            raise ClipboardProtocolError(
-                f"unexpected status in clipboard read response: {packet.status}"
-            )
+        match packet:
+            case Packet(status="DATA", mime=mime, payload=payload):
+                result[mime] = result.get(mime, b"") + payload
+            case Packet(status="DONE"):
+                return result
+            case Packet(status=status) if status in _ERROR_MESSAGES:
+                _raise_for_status(status)
+            case Packet(status="OK"):
+                pass
+            case Packet(status=status):
+                raise ClipboardProtocolError(
+                    f"unexpected status in clipboard read response: {status}"
+                )
 
 
 def list_mime(tty: Terminal, *, primary: bool = False, timeout: float) -> list[str]:
     """List the MIME types available on the system clipboard."""
     result = read(tty, [LIST_MIME], primary=primary, timeout=timeout)
     return result.get(LIST_MIME, b"").decode(errors="replace").split()
+
+
+def _meta(kind: bytes, primary: bool) -> bytes:
+    meta = kind
+    if primary:
+        meta += b":loc=primary"
+    return meta
 
 
 def _chunks(data: bytes, size: int = CHUNK_SIZE) -> Iterator[bytes]:

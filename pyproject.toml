@@ -20,8 +20,8 @@ Homepage = "https://github.com/rumpelsepp/oscclip"
 Issues = "https://github.com/rumpelsepp/oscclip/issues"
 
 [project.scripts]
-osc-copy = "oscclip.osc_copy:main"
-osc-paste = "oscclip.osc_paste:main"
+osc-copy = "oscclip.cli.copy:main"
+osc-paste = "oscclip.cli.paste:main"
 
 [dependency-groups]
 dev = [
@@ -67,10 +67,8 @@ max-args = 8
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR2004"]
 # These modules implement the CLI output; print is intentional here.
-"src/oscclip/cli.py" = ["T201"]
-"src/oscclip/osc_copy.py" = ["T201"]
-"src/oscclip/osc_paste.py" = ["T201"]
-"src/oscclip/mux.py" = ["T201"]
+"src/oscclip/cli/__init__.py" = ["T201"]
+"src/oscclip/cli/paste.py" = ["T201"]
 
 [tool.mypy]
 strict = true

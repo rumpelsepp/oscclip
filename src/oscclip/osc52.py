@@ -30,23 +30,24 @@ class Osc52Response:
     data: bytes
 
 
-def _loc(primary: bool) -> bytes:
-    return b"p" if primary else b"c"
+def _build(payload: bytes, primary: bool) -> bytes:
+    loc = b"p" if primary else b"c"
+    return OSC + b"52;" + loc + b";" + payload + BEL
 
 
 def build_copy(data: bytes, *, primary: bool = False) -> bytes:
     """Build an OSC 52 sequence which sets the system clipboard."""
-    return OSC + b"52;" + _loc(primary) + b";" + base64.b64encode(data) + BEL
+    return _build(base64.b64encode(data), primary)
 
 
 def build_query(*, primary: bool = False) -> bytes:
     """Build an OSC 52 sequence which queries the system clipboard."""
-    return OSC + b"52;" + _loc(primary) + b";?" + BEL
+    return _build(b"?", primary)
 
 
 def build_clear(*, primary: bool = False) -> bytes:
     """Build an OSC 52 sequence which clears the system clipboard."""
-    return OSC + b"52;" + _loc(primary) + b";!" + BEL
+    return _build(b"!", primary)
 
 
 def parse_response(match: re.Match[bytes]) -> Osc52Response:

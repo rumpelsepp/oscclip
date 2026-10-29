@@ -55,7 +55,8 @@ def test_copy_osc52_fallback(make_tty: Callable[..., FakeTty]) -> None:
 
 def test_copy_osc52_explicit(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty(DECRPM_SUPPORTED + write_done())
-    clipboard.copy(tty, b"data", protocol=clipboard.Protocol.OSC52)
+    settings = clipboard.Settings(protocol=clipboard.Protocol.OSC52)
+    clipboard.copy(tty, b"data", settings)
     assert tty.written == [b"\x1b]52;c;" + b64(b"data") + b"\x07"]
 
 
@@ -67,8 +68,9 @@ def test_copy_kitty_mime(make_tty: Callable[..., FakeTty]) -> None:
 
 def test_copy_kitty_explicit_unsupported(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty()
+    settings = clipboard.Settings(protocol=clipboard.Protocol.KITTY)
     with pytest.raises(ClipboardError):
-        clipboard.copy(tty, b"data", protocol=clipboard.Protocol.KITTY)
+        clipboard.copy(tty, b"data", settings)
 
 
 def test_copy_mime_requires_kitty(make_tty: Callable[..., FakeTty]) -> None:
@@ -84,7 +86,7 @@ def test_copy_bypass_wraps_writes(
     monkeypatch.setenv("TERM", "xterm-256color")
     monkeypatch.delenv("STY", raising=False)
     tty = make_tty()
-    clipboard.copy(tty, b"data", bypass=True)
+    clipboard.copy(tty, b"data", clipboard.Settings(bypass=True))
     assert all(entry.startswith(b"\x1bPtmux;") for entry in tty.written)
 
 
@@ -128,7 +130,16 @@ def test_paste_osc52_fallback(make_tty: Callable[..., FakeTty]) -> None:
 def test_paste_osc52_timeout(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty()
     with pytest.raises(ClipboardTimeoutError):
-        clipboard.paste(tty, timeout=0.1)
+        clipboard.paste(tty, clipboard.Settings(timeout=0.1))
+
+
+def test_paste_osc52_timeout_tmux_hint(
+    make_tty: Callable[..., FakeTty], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TMUX", "/tmp/sock,1,0")
+    tty = make_tty()
+    with pytest.raises(ClipboardTimeoutError, match="get-clipboard"):
+        clipboard.paste(tty, clipboard.Settings(timeout=0.1))
 
 
 def test_paste_mime_requires_kitty(make_tty: Callable[..., FakeTty]) -> None:
@@ -156,7 +167,8 @@ def test_clear_osc52(make_tty: Callable[..., FakeTty]) -> None:
 
 def test_clear_osc52_explicit(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty(DECRPM_SUPPORTED + write_done())
-    clipboard.clear(tty, protocol=clipboard.Protocol.OSC52)
+    settings = clipboard.Settings(protocol=clipboard.Protocol.OSC52)
+    clipboard.clear(tty, settings)
     assert tty.written == [b"\x1b]52;c;!\x07"]
 
 
@@ -176,5 +188,6 @@ def test_list_mime_unsupported(make_tty: Callable[..., FakeTty]) -> None:
 
 def test_list_mime_osc52_explicit(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty(DECRPM_SUPPORTED + read_ok() + read_data(".", b"text/plain\n") + read_done())
+    settings = clipboard.Settings(protocol=clipboard.Protocol.OSC52)
     with pytest.raises(ClipboardError):
-        clipboard.list_mime(tty, protocol=clipboard.Protocol.OSC52)
+        clipboard.list_mime(tty, settings)

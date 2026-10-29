@@ -10,10 +10,16 @@ import argparse
 import sys
 from collections.abc import Sequence
 
-from . import clipboard
-from .cli import add_bypass_arg, add_protocol_arg, add_timeout_arg, add_version_arg, die
-from .errors import ClipboardError
-from .term import RawTerminal
+from .. import clipboard
+from ..term import RawTerminal
+from . import (
+    add_bypass_arg,
+    add_protocol_arg,
+    add_timeout_arg,
+    add_version_arg,
+    entrypoint,
+    settings_from_args,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -43,51 +49,31 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def run(argv: Sequence[str] | None = None) -> int:
-    """Run osc-copy."""
-    args = build_parser().parse_args(argv)
+def read_input(args: argparse.Namespace) -> bytes:
+    """Read the data to copy from stdin or the positional argument."""
+    if args.text == "-":
+        return sys.stdin.buffer.read()
+    text: str = args.text
+    return text.encode()
 
-    if args.clear:
-        data = b""
-    elif args.text == "-":
-        data = sys.stdin.buffer.read()
-    else:
-        data = args.text.encode()
 
+def copy(args: argparse.Namespace) -> int:
+    """Copy data to the system clipboard."""
+    data = b"" if args.clear else read_input(args)
     if args.trim:
         data = data.strip()
 
-    try:
-        with RawTerminal() as term:
-            if args.clear:
-                clipboard.clear(
-                    term,
-                    primary=args.primary,
-                    bypass=args.bypass,
-                    protocol=args.protocol,
-                    timeout=args.timeout,
-                )
-            else:
-                clipboard.copy(
-                    term,
-                    data,
-                    mime=args.mime,
-                    primary=args.primary,
-                    bypass=args.bypass,
-                    protocol=args.protocol,
-                    timeout=args.timeout,
-                )
-    except ClipboardError as e:
-        die(str(e))
-    except OSError as e:
-        die(f"cannot access the controlling terminal: {e}")
+    settings = settings_from_args(args)
+    with RawTerminal() as term:
+        if args.clear:
+            clipboard.clear(term, settings)
+        else:
+            clipboard.copy(term, data, settings, mime=args.mime)
     return 0
 
 
+@entrypoint
 def main(argv: Sequence[str] | None = None) -> int:
     """Entry point for osc-copy."""
-    try:
-        return run(argv)
-    except KeyboardInterrupt:
-        print("error: interrupted", file=sys.stderr)
-        return 130
+    args = build_parser().parse_args(argv)
+    return copy(args)

@@ -10,11 +10,18 @@ import argparse
 import sys
 from collections.abc import Sequence
 
-from . import clipboard, mux
-from .cli import add_bypass_arg, add_protocol_arg, add_timeout_arg, add_version_arg, die
-from .clipboard import ClipboardContent
-from .errors import ClipboardError, ClipboardTimeoutError
-from .term import RawTerminal
+from .. import clipboard
+from ..clipboard import ClipboardContent
+from ..term import RawTerminal
+from . import (
+    add_bypass_arg,
+    add_protocol_arg,
+    add_timeout_arg,
+    add_version_arg,
+    die,
+    entrypoint,
+    settings_from_args,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -46,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _write_output(content: ClipboardContent, *, trim: bool) -> None:
+def write_output(content: ClipboardContent, *, trim: bool) -> None:
     """Write clipboard data to stdout."""
     data = content.data
     if trim:
@@ -57,54 +64,26 @@ def _write_output(content: ClipboardContent, *, trim: bool) -> None:
     sys.stdout.buffer.flush()
 
 
-def run(argv: Sequence[str] | None = None) -> int:
-    """Run osc-paste."""
-    args = build_parser().parse_args(argv)
+def paste(args: argparse.Namespace) -> int:
+    """Read data from the system clipboard."""
     mimes = args.mime or ["text/plain"]
+    settings = settings_from_args(args)
 
-    try:
-        with RawTerminal() as term:
-            if args.list_mime:
-                for mime in clipboard.list_mime(
-                    term,
-                    primary=args.primary,
-                    bypass=args.bypass,
-                    protocol=args.protocol,
-                    timeout=args.timeout,
-                ):
-                    print(mime)
-                return 0
-            content = clipboard.paste(
-                term,
-                mimes=mimes,
-                primary=args.primary,
-                bypass=args.bypass,
-                protocol=args.protocol,
-                timeout=args.timeout,
-            )
-    except ClipboardTimeoutError as e:
-        message = str(e)
-        if mux.in_tmux():
-            message += (
-                " (hint: enable tmux's `get-clipboard` option, "
-                "e.g. `tmux set -s get-clipboard both`)"
-            )
-        die(message)
-    except ClipboardError as e:
-        die(str(e))
-    except OSError as e:
-        die(f"cannot access the controlling terminal: {e}")
+    with RawTerminal() as term:
+        if args.list_mime:
+            for mime in clipboard.list_mime(term, settings):
+                print(mime)
+            return 0
+        content = clipboard.paste(term, settings, mimes=mimes)
 
     if not content.data:
         die("the clipboard is empty")
-    _write_output(content, trim=args.trim)
+    write_output(content, trim=args.trim)
     return 0
 
 
+@entrypoint
 def main(argv: Sequence[str] | None = None) -> int:
     """Entry point for osc-paste."""
-    try:
-        return run(argv)
-    except KeyboardInterrupt:
-        print("error: interrupted", file=sys.stderr)
-        return 130
+    args = build_parser().parse_args(argv)
+    return paste(args)

@@ -13,7 +13,8 @@ from collections.abc import Callable
 
 import pytest
 
-from oscclip import osc_copy, osc_paste
+from oscclip.cli import copy as osc_copy
+from oscclip.cli import paste as osc_paste
 from tests.fake_tty import FakeRawTerminal, FakeTty
 
 DECRPM_SUPPORTED = b"\x1b[?5522;1$y"

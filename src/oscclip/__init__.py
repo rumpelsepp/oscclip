@@ -4,6 +4,7 @@
 
 """Utilities to access the system clipboard via terminal escape sequences."""
 
+from .clipboard import ClipboardContent, Protocol, Settings, clear, copy, list_mime, paste
 from .errors import (
     ClipboardDeniedError,
     ClipboardError,
@@ -12,8 +13,15 @@ from .errors import (
 )
 
 __all__ = [
+    "ClipboardContent",
     "ClipboardDeniedError",
     "ClipboardError",
     "ClipboardProtocolError",
     "ClipboardTimeoutError",
+    "Protocol",
+    "Settings",
+    "clear",
+    "copy",
+    "list_mime",
+    "paste",
 ]
