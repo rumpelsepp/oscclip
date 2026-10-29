@@ -52,10 +52,13 @@ class RawTerminal:
         try:
             self._saved_attrs = termios.tcgetattr(fd)
             tty_module.setraw(fd)
+            attrs = termios.tcgetattr(fd)
             # Keep ISIG enabled so that the user can still interrupt the
             # program with Ctrl+C while it is waiting for responses.
-            attrs = termios.tcgetattr(fd)
             attrs[3] |= termios.ISIG
+            # Keep output processing enabled so that log output written to
+            # stderr stays readable while the terminal is in raw mode.
+            attrs[1] |= termios.OPOST
             termios.tcsetattr(fd, termios.TCSADRAIN, attrs)
         except BaseException:
             os.close(fd)

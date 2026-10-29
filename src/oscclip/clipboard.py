@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import enum
-import logging
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -16,8 +15,6 @@ from oscclip import kitty, osc52
 from oscclip.errors import ClipboardError, ClipboardTimeoutError
 from oscclip.mux import in_tmux, wrap_passthrough
 from oscclip.term import Terminal
-
-logger = logging.getLogger(__name__)
 
 #: Timeout in seconds for terminal capability queries.
 DETECT_TIMEOUT = 0.5
@@ -80,7 +77,6 @@ def _use_kitty(tty: Terminal, settings: Settings) -> bool:
     supported = kitty.supports(tty, timeout=DETECT_TIMEOUT)
     if not supported and settings.protocol is Protocol.KITTY:
         raise ClipboardError("the terminal does not support the kitty clipboard protocol")
-    logger.debug("kitty clipboard protocol supported: %s", supported)
     return supported
 
 
