@@ -42,13 +42,36 @@ target-version = "py314"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-extend-select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "PL", "RUF"]
+extend-select = [
+    "A",    # flake8-builtins: don't shadow builtins
+    "B",    # flake8-bugbear: common bug patterns
+    "C4",   # flake8-comprehensions
+    "E",    # pycodestyle errors (incl. E501)
+    "F",    # pyflakes
+    "I",    # isort
+    "PERF", # perflint
+    "PIE",  # flake8-pie
+    "PL",   # pylint umbrella
+    "PT",   # flake8-pytest-style
+    "RET",  # flake8-return
+    "RUF",  # ruff-specific (incl. ambiguous unicode detection)
+    "SIM",  # flake8-simplify
+    "T10",  # flake8-debugger
+    "T20",  # flake8-print: protocol code must not write to stdout
+    "UP",   # pyupgrade
+    "W",    # pycodestyle warnings
+]
 
 [tool.ruff.lint.pylint]
 max-args = 8
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR2004"]
+# These modules implement the CLI output; print is intentional here.
+"src/oscclip/cli.py" = ["T201"]
+"src/oscclip/osc_copy.py" = ["T201"]
+"src/oscclip/osc_paste.py" = ["T201"]
+"src/oscclip/mux.py" = ["T201"]
 
 [tool.mypy]
 strict = true
