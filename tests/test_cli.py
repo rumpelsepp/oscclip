@@ -92,6 +92,12 @@ def test_copy_kitty(fake_term: Callable[..., FakeTty]) -> None:
     assert b"\x1b]5522;type=write" + ST in tty.written
 
 
+def test_copy_kitty_mime(fake_term: Callable[..., FakeTty]) -> None:
+    tty = fake_term(DECRPM_SUPPORTED + write_done())
+    assert osc_copy.main(["-m", "image/png", "binary-ish"]) == 0
+    assert b"type=wdata:mime=" + b64(b"image/png") + b";" in tty.written[2]
+
+
 def test_copy_kitty_explicit_unsupported(fake_term: Callable[..., FakeTty]) -> None:
     fake_term()
     with pytest.raises(SystemExit) as excinfo:
