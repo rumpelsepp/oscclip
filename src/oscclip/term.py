@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+import select
 import selectors
 import termios
 import time
@@ -79,12 +80,16 @@ class RawTerminal:
         self._buffer = b""
 
     def write(self, data: bytes) -> None:
-        """Write data to the terminal."""
+        """Write data to the terminal, waiting while the terminal is busy."""
         if (fd := self._fd) is None:
             raise RuntimeError("terminal is not open")
         view = memoryview(data)
         while view:
-            view = view[os.write(fd, view) :]
+            try:
+                view = view[os.write(fd, view) :]
+            except BlockingIOError:
+                # The terminal input buffer is full; wait until it drains.
+                select.select([], [fd], [])
 
     def read_until(
         self, patterns: Sequence[re.Pattern[bytes]], timeout: float
@@ -107,7 +112,10 @@ class RawTerminal:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0 or not selector.select(remaining):
                     return None
-                chunk = os.read(fd, _READ_CHUNK_SIZE)
+                try:
+                    chunk = os.read(fd, _READ_CHUNK_SIZE)
+                except BlockingIOError:
+                    continue
                 if not chunk:
                     return None
                 self._buffer += chunk
