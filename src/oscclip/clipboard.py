@@ -92,7 +92,7 @@ def _require_plain_text(mimes: Sequence[str]) -> None:
 
 
 def _get_clipboard_hint() -> str:
-    """Hint for tmux's get-clipboard option (tmux >= 3.7)."""
+    """Hint for tmux's get-clipboard option."""
     return " (hint: enable tmux's `get-clipboard` option, e.g. `tmux set -s get-clipboard both`)"
 
 

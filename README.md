@@ -141,7 +141,7 @@ behavior is controlled by two tmux server options:
   clipboard of the outer terminal.  Only with `set -s set-clipboard on`
   does tmux accept OSC 52 clipboard writes from panes, so this is required
   for `osc-copy` to work from inside tmux.
-* `get-clipboard` (tmux >= 3.7) — how tmux answers clipboard queries from
+* `get-clipboard` — how tmux answers clipboard queries from
   panes.  With `buffer` (the default), tmux answers with its
   newest paste buffer; `request` and `both` forward the query to the outer
   terminal instead (`tmux set -s get-clipboard both`).
