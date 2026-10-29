@@ -11,7 +11,7 @@ Specification: https://sw.kovidgoyal.net/kitty/clipboard/
 """
 
 from oscclip.kitty.build import LIST_MIME
-from oscclip.kitty.parse import PACKET_RE, Packet
+from oscclip.kitty.parse import PACKET_RE, Packet, parse_packet
 from oscclip.kitty.transport import list_mime, read, supports, write
 
 __all__ = [
@@ -19,6 +19,7 @@ __all__ = [
     "PACKET_RE",
     "Packet",
     "list_mime",
+    "parse_packet",
     "read",
     "supports",
     "write",

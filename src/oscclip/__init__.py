@@ -6,7 +6,16 @@
 
 import logging
 
-from oscclip.clipboard import ClipboardContent, Protocol, Settings, clear, copy, list_mime, paste
+from oscclip.clipboard import (
+    ClipboardContent,
+    Protocol,
+    Settings,
+    clear,
+    copy,
+    list_mime,
+    paste,
+    paste_image,
+)
 from oscclip.errors import (
     ClipboardDeniedError,
     ClipboardError,
@@ -28,4 +37,5 @@ __all__ = [
     "copy",
     "list_mime",
     "paste",
+    "paste_image",
 ]
