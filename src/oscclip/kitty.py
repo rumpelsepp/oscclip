@@ -10,18 +10,19 @@ Specification: https://sw.kovidgoyal.net/kitty/clipboard/
 from __future__ import annotations
 
 import base64
-import binascii
 import re
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
 from typing import NoReturn
 
-from .errors import (
+from pydantic import BaseModel, ConfigDict, ValidationError
+
+from oscclip.encoding import Base64Bytes, Base64Str
+from oscclip.errors import (
     ClipboardDeniedError,
     ClipboardProtocolError,
     ClipboardTimeoutError,
 )
-from .term import Terminal
+from oscclip.term import Terminal
 
 OSC = b"\x1b]"
 ST = b"\x1b\\"
@@ -51,18 +52,16 @@ _ERROR_MESSAGES = {
     "EFBIG": "the clipboard data exceeds the maximum size allowed by the terminal",
 }
 
-#: Metadata values of these keys are base64 encoded.
-_BASE64_KEYS = frozenset({"mime", "name", "pw"})
 
-
-@dataclass(frozen=True)
-class Packet:
+class Packet(BaseModel):
     """A single OSC 5522 packet."""
 
-    type: str
+    model_config = ConfigDict(frozen=True, extra="ignore")
+
+    type: str = ""
     status: str = ""
-    mime: str = ""
-    payload: bytes = b""
+    mime: Base64Str = ""
+    payload: Base64Bytes = b""
 
 
 def supports(tty: Terminal, *, timeout: float) -> bool:
@@ -159,33 +158,18 @@ def _chunks(data: bytes, size: int = CHUNK_SIZE) -> Iterator[bytes]:
         yield data[offset : offset + size]
 
 
-def _decode_metadata_value(key: str, value: str) -> str:
-    if key not in _BASE64_KEYS:
-        return value
-    try:
-        return base64.b64decode(value.encode(), validate=True).decode("utf-8", errors="replace")
-    except binascii.Error as e:
-        raise ClipboardProtocolError(f"invalid base64 value in OSC 5522 metadata: {e}") from e
-
-
 def _parse_packet(match: re.Match[bytes]) -> Packet:
-    metadata: dict[str, str] = {}
+    """Parse an OSC 5522 packet."""
+    metadata: dict[str, str | bytes] = {}
     for record in match.group(1).decode("ascii", errors="replace").split(":"):
         key, sep, value = record.partition("=")
         if sep:
-            metadata[key] = _decode_metadata_value(key, value)
-    payload = b""
-    if encoded := match.group(2):
-        try:
-            payload = base64.b64decode(encoded, validate=True)
-        except binascii.Error as e:
-            raise ClipboardProtocolError(f"invalid base64 payload in OSC 5522 packet: {e}") from e
-    return Packet(
-        type=metadata.get("type", ""),
-        status=metadata.get("status", ""),
-        mime=metadata.get("mime", ""),
-        payload=payload,
-    )
+            metadata[key] = value
+    metadata["payload"] = match.group(2) or b""
+    try:
+        return Packet.model_validate(metadata)
+    except ValidationError as e:
+        raise ClipboardProtocolError(f"invalid OSC 5522 packet: {e}") from e
 
 
 def _raise_for_status(status: str) -> NoReturn:

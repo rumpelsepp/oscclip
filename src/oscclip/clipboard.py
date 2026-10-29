@@ -11,10 +11,10 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from . import kitty, osc52
-from .errors import ClipboardError, ClipboardTimeoutError
-from .mux import in_tmux, wrap_passthrough
-from .term import Terminal
+from oscclip import kitty, osc52
+from oscclip.errors import ClipboardError, ClipboardTimeoutError
+from oscclip.mux import in_tmux, wrap_passthrough
+from oscclip.term import Terminal
 
 #: Timeout in seconds for terminal capability queries.
 DETECT_TIMEOUT = 0.5

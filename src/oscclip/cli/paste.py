@@ -10,10 +10,8 @@ import argparse
 import sys
 from collections.abc import Sequence
 
-from .. import clipboard
-from ..clipboard import ClipboardContent
-from ..term import RawTerminal
-from . import (
+from oscclip import clipboard
+from oscclip.cli import (
     add_bypass_arg,
     add_protocol_arg,
     add_timeout_arg,
@@ -22,6 +20,8 @@ from . import (
     entrypoint,
     settings_from_args,
 )
+from oscclip.clipboard import ClipboardContent
+from oscclip.term import RawTerminal
 
 
 def build_parser() -> argparse.ArgumentParser:

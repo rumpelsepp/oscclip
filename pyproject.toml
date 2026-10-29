@@ -13,7 +13,9 @@ authors = [
     { name = "Stefan Tatschner", email = "stefan@rumpelsepp.org" },
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "pydantic>=2",
+]
 
 [project.urls]
 Homepage = "https://github.com/rumpelsepp/oscclip"
@@ -57,6 +59,7 @@ extend-select = [
     "SIM",  # flake8-simplify
     "T10",  # flake8-debugger
     "T20",  # flake8-print: protocol code must not write to stdout
+    "TID",  # flake8-tidy-imports: absolute imports only
     "UP",   # pyupgrade
     "W",    # pycodestyle warnings
 ]
@@ -74,6 +77,12 @@ max-args = 8
 strict = true
 num_workers = "auto"
 files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 [tool.ty.src]
 include = ["src", "tests"]

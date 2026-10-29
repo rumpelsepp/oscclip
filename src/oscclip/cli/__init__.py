@@ -13,8 +13,8 @@ from collections.abc import Callable, Sequence
 from importlib import metadata
 from typing import NoReturn
 
-from ..clipboard import DEFAULT_TIMEOUT, Protocol, Settings
-from ..errors import ClipboardError
+from oscclip.clipboard import DEFAULT_TIMEOUT, Protocol, Settings
+from oscclip.errors import ClipboardError
 
 
 def get_version() -> str:

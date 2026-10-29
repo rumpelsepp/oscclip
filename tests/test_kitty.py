@@ -181,6 +181,21 @@ def test_read_unexpected_status(make_tty: Callable[..., FakeTty]) -> None:
         kitty.read(tty, ["text/plain"], timeout=0.1)
 
 
+def test_read_invalid_base64_payload(make_tty: Callable[..., FakeTty]) -> None:
+    meta = f"type=read:status=DATA:mime={b64(b'text/plain').decode()}"
+    responses = read_ok() + packet(meta, b"QQ") + read_done()
+    tty = make_tty(responses)
+    with pytest.raises(ClipboardProtocolError):
+        kitty.read(tty, ["text/plain"], timeout=0.1)
+
+
+def test_read_invalid_base64_metadata(make_tty: Callable[..., FakeTty]) -> None:
+    responses = read_ok() + packet("type=read:status=DATA:mime=QQ", b64(b"hello")) + read_done()
+    tty = make_tty(responses)
+    with pytest.raises(ClipboardProtocolError):
+        kitty.read(tty, ["text/plain"], timeout=0.1)
+
+
 def test_list_mime(make_tty: Callable[..., FakeTty]) -> None:
     responses = read_ok() + read_data(".", b"text/plain image/png\n") + read_done()
     tty = make_tty(responses)

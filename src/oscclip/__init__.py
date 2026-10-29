@@ -4,8 +4,8 @@
 
 """Utilities to access the system clipboard via terminal escape sequences."""
 
-from .clipboard import ClipboardContent, Protocol, Settings, clear, copy, list_mime, paste
-from .errors import (
+from oscclip.clipboard import ClipboardContent, Protocol, Settings, clear, copy, list_mime, paste
+from oscclip.errors import (
     ClipboardDeniedError,
     ClipboardError,
     ClipboardProtocolError,

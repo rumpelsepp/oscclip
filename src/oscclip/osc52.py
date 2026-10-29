@@ -7,11 +7,12 @@
 from __future__ import annotations
 
 import base64
-import binascii
 import re
-from dataclasses import dataclass
 
-from .errors import ClipboardProtocolError
+from pydantic import BaseModel, ConfigDict, ValidationError
+
+from oscclip.encoding import Base64Bytes
+from oscclip.errors import ClipboardProtocolError
 
 ESC = b"\x1b"
 OSC = ESC + b"]"
@@ -22,12 +23,13 @@ ST = ESC + b"\\"
 RESPONSE_RE = re.compile(rb"\x1b\]52;([a-zA-Z0-9]*)(?:;([A-Za-z0-9+/=]*))?(?:\x07|\x1b\\)")
 
 
-@dataclass(frozen=True)
-class Osc52Response:
+class Osc52Response(BaseModel):
     """A response to an OSC 52 clipboard query."""
 
-    source: str
-    data: bytes
+    model_config = ConfigDict(frozen=True)
+
+    source: str = ""
+    data: Base64Bytes = b""
 
 
 def _build(payload: bytes, primary: bool) -> bytes:
@@ -52,11 +54,11 @@ def build_clear(*, primary: bool = False) -> bytes:
 
 def parse_response(match: re.Match[bytes]) -> Osc52Response:
     """Parse an OSC 52 clipboard response."""
-    source = match.group(1).decode()
-    data = b""
-    if encoded := match.group(2):
-        try:
-            data = base64.b64decode(encoded, validate=True)
-        except binascii.Error as e:
-            raise ClipboardProtocolError(f"invalid base64 data in OSC 52 response: {e}") from e
-    return Osc52Response(source=source, data=data)
+    raw: dict[str, str | bytes] = {
+        "source": match.group(1).decode(),
+        "data": match.group(2) or b"",
+    }
+    try:
+        return Osc52Response.model_validate(raw)
+    except ValidationError as e:
+        raise ClipboardProtocolError(f"invalid OSC 52 response: {e}") from e
