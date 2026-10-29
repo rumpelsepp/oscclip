@@ -49,6 +49,31 @@ fuzz-native:
 build:
     uv build
 
+# Create a release: optionally bump the version, commit, tag, push and
+# publish a GitHub release, which uploads the package to PyPI via trusted
+# publishing (see .github/workflows/release.yml).
+#
+#   just release            release the current version from pyproject.toml
+#   just release patch      bump patch/minor/major first
+#   just release 0.7.0      set an explicit version first (e.g. revert a bump)
+release bump="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ -n "{{ bump }}" ]]; then
+        if [[ "{{ bump }}" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
+            uv version "{{ bump }}"
+        else
+            uv version --bump "{{ bump }}"
+        fi
+        git add pyproject.toml uv.lock
+        git commit -m "Bump version to v$(uv version --short)"
+    fi
+    tag="v$(uv version --short)"
+    git tag -a "$tag" -m "$tag"
+    git push --follow-tags
+    gh release create "$tag" --title "$tag" --generate-notes
+    echo "released $tag; the release workflow publishes it to PyPI"
+
 # Run osc-copy from the working tree.
 copy *args:
     uv run osc-copy {{args}}
