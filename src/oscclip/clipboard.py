@@ -127,11 +127,15 @@ def paste(
     """Read data from the system clipboard."""
     tty = _select(term, settings)
     if _use_kitty(tty, settings):
-        available = kitty.read(tty, mimes, primary=settings.primary, timeout=settings.timeout)
+        data = kitty.read(tty, mimes, primary=settings.primary, timeout=settings.timeout)
         for mime in mimes:
-            if mime in available:
-                return ClipboardContent(mime=mime, data=available[mime])
-        raise ClipboardError("none of the requested MIME types are available on the clipboard")
+            if mime in data:
+                return ClipboardContent(mime=mime, data=data[mime])
+        available = kitty.list_mime(tty, primary=settings.primary, timeout=settings.timeout)
+        message = "none of the requested MIME types are available on the clipboard"
+        if available:
+            message += f"; the clipboard contains: {', '.join(available)}"
+        raise ClipboardError(message)
     _require_plain_text(mimes)
     try:
         response = osc52.query(tty, primary=settings.primary, timeout=settings.timeout)

@@ -131,6 +131,20 @@ def test_paste_kitty_mime_unavailable(make_tty: Callable[..., FakeTty]) -> None:
         clipboard.paste(tty, mimes=["image/png"])
 
 
+def test_paste_mime_unavailable_hint(make_tty: Callable[..., FakeTty]) -> None:
+    responses = (
+        DECRPM_SUPPORTED
+        + read_ok()
+        + read_done()
+        + read_ok()
+        + read_data(".", b"image/png\n")
+        + read_done()
+    )
+    tty = make_tty(responses)
+    with pytest.raises(ClipboardError, match="image/png"):
+        clipboard.paste(tty)
+
+
 def test_paste_osc52_fallback(make_tty: Callable[..., FakeTty]) -> None:
     responses = b"\x1b]52;c;" + b64(b"hello") + b"\x07"
     tty = make_tty(responses)
