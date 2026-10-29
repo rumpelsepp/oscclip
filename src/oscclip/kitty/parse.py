@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable
+from dataclasses import dataclass
 from typing import NoReturn
 
-from pydantic import BaseModel, ConfigDict, ValidationError
-
-from oscclip.encoding import Base64Bytes, Base64Str
+from oscclip import encoding
 from oscclip.errors import ClipboardDeniedError, ClipboardProtocolError
 
 #: DECRPM status values: 0 = not recognized, 1 = set, 2 = reset,
@@ -32,16 +31,18 @@ _ERROR_MESSAGES = {
     "EFBIG": "the clipboard data exceeds the maximum size allowed by the terminal",
 }
 
+#: Metadata keys whose values are base64 encoded.
+_BASE64_KEYS = frozenset({"mime", "name", "pw"})
 
-class Packet(BaseModel):
+
+@dataclass(frozen=True)
+class Packet:
     """A single OSC 5522 packet."""
-
-    model_config = ConfigDict(frozen=True, extra="ignore")
 
     type: str = ""
     status: str = ""
-    mime: Base64Str = ""
-    payload: Base64Bytes = b""
+    mime: str = ""
+    payload: bytes = b""
 
 
 def parse_decrpm(match: re.Match[bytes]) -> bool:
@@ -51,16 +52,17 @@ def parse_decrpm(match: re.Match[bytes]) -> bool:
 
 def parse_packet(match: re.Match[bytes]) -> Packet:
     """Parse an OSC 5522 packet."""
-    metadata: dict[str, str | bytes] = {}
+    metadata: dict[str, str] = {}
     for record in match.group(1).decode("ascii", errors="replace").split(":"):
         key, sep, value = record.partition("=")
         if sep:
-            metadata[key] = value
-    metadata["payload"] = match.group(2) or b""
-    try:
-        return Packet.model_validate(metadata)
-    except ValidationError as e:
-        raise ClipboardProtocolError(f"invalid OSC 5522 packet: {e}") from e
+            metadata[key] = encoding.decode_str(value) if key in _BASE64_KEYS else value
+    return Packet(
+        type=metadata.get("type", ""),
+        status=metadata.get("status", ""),
+        mime=metadata.get("mime", ""),
+        payload=encoding.decode_bytes(match.group(2) or b""),
+    )
 
 
 def is_error(status: str) -> bool:

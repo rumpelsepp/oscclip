@@ -7,32 +7,25 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 
-from pydantic import BaseModel, ConfigDict, ValidationError
-
-from oscclip.encoding import Base64Bytes
-from oscclip.errors import ClipboardProtocolError
+from oscclip import encoding
 
 #: Matches OSC 52 clipboard responses with either BEL or ST terminator.
 RESPONSE_RE = re.compile(rb"\x1b\]52;([a-zA-Z0-9]*)(?:;([A-Za-z0-9+/=]*))?(?:\x07|\x1b\\)")
 
 
-class Osc52Response(BaseModel):
+@dataclass(frozen=True)
+class Osc52Response:
     """A response to an OSC 52 clipboard query."""
 
-    model_config = ConfigDict(frozen=True)
-
     source: str = ""
-    data: Base64Bytes = b""
+    data: bytes = b""
 
 
 def parse_response(match: re.Match[bytes]) -> Osc52Response:
     """Parse an OSC 52 clipboard response."""
-    raw: dict[str, str | bytes] = {
-        "source": match.group(1).decode(),
-        "data": match.group(2) or b"",
-    }
-    try:
-        return Osc52Response.model_validate(raw)
-    except ValidationError as e:
-        raise ClipboardProtocolError(f"invalid OSC 52 response: {e}") from e
+    return Osc52Response(
+        source=match.group(1).decode(),
+        data=encoding.decode_bytes(match.group(2) or b""),
+    )

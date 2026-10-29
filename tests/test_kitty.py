@@ -242,7 +242,7 @@ def _packet(
     mime: str = "",
     payload: bytes = b"",
 ) -> Packet:
-    return Packet.model_construct(type=type_, status=status, mime=mime, payload=payload)
+    return Packet(type=type_, status=status, mime=mime, payload=payload)
 
 
 def test_check_write_response_done() -> None:

@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import math
 import re
-
-from pydantic import BaseModel, ConfigDict, ValidationError
+from dataclasses import dataclass
 
 from oscclip.errors import ClipboardProtocolError
 
@@ -26,37 +25,33 @@ CELL_SIZE_RE = re.compile(rb"\x1b\[6;(\d+);(\d+)t")
 WINDOW_SIZE_RE = re.compile(rb"\x1b\[8;(\d+);(\d+)t")
 
 
-class GraphicsResponse(BaseModel):
+@dataclass(frozen=True)
+class GraphicsResponse:
     """A response to a graphics command."""
-
-    model_config = ConfigDict(frozen=True)
 
     image_id: int
     message: str
 
 
-class CellSize(BaseModel):
+@dataclass(frozen=True)
+class CellSize:
     """The pixel size of a single terminal cell."""
-
-    model_config = ConfigDict(frozen=True)
 
     height: int
     width: int
 
 
-class WindowSize(BaseModel):
+@dataclass(frozen=True)
+class WindowSize:
     """The window size in cells."""
-
-    model_config = ConfigDict(frozen=True)
 
     rows: int
     columns: int
 
 
-class Placement(BaseModel):
+@dataclass(frozen=True)
+class Placement:
     """The cell area an image is displayed in."""
-
-    model_config = ConfigDict(frozen=True)
 
     columns: int
     rows: int
@@ -65,14 +60,10 @@ class Placement(BaseModel):
 
 def parse_response(match: re.Match[bytes]) -> GraphicsResponse:
     """Parse a graphics response."""
-    raw: dict[str, str | int] = {
-        "image_id": int(match.group(1)),
-        "message": match.group(2).decode("ascii", errors="replace"),
-    }
-    try:
-        return GraphicsResponse.model_validate(raw)
-    except ValidationError as e:
-        raise ClipboardProtocolError(f"invalid graphics response: {e}") from e
+    return GraphicsResponse(
+        image_id=int(match.group(1)),
+        message=match.group(2).decode("ascii", errors="replace"),
+    )
 
 
 def parse_cell_size(match: re.Match[bytes]) -> CellSize:

@@ -13,9 +13,7 @@ authors = [
     { name = "Stefan Tatschner", email = "stefan@rumpelsepp.org" },
 ]
 requires-python = ">=3.14"
-dependencies = [
-    "pydantic>=2",
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/rumpelsepp/oscclip"
@@ -78,12 +76,6 @@ max-args = 8
 strict = true
 num_workers = "auto"
 files = ["src", "tests"]
-plugins = ["pydantic.mypy"]
-
-[tool.pydantic-mypy]
-init_forbid_extra = true
-init_typed = true
-warn_required_dynamic_aliases = true
 
 [tool.ty.src]
 include = ["src", "tests"]
