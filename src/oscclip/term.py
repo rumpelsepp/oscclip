@@ -19,6 +19,10 @@ from typing import Any, Protocol, Self
 
 _READ_CHUNK_SIZE = 4096
 
+#: Indices into the attribute list returned by termios.tcgetattr().
+_OFLAG = 1
+_LFLAG = 3
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,10 +60,10 @@ class RawTerminal:
             attrs = termios.tcgetattr(fd)
             # Keep ISIG enabled so that the user can still interrupt the
             # program with Ctrl+C while it is waiting for responses.
-            attrs[3] |= termios.ISIG
+            attrs[_LFLAG] |= termios.ISIG
             # Keep output processing enabled so that log output written to
             # stderr stays readable while the terminal is in raw mode.
-            attrs[1] |= termios.OPOST
+            attrs[_OFLAG] |= termios.OPOST
             termios.tcsetattr(fd, termios.TCSADRAIN, attrs)
         except BaseException:
             os.close(fd)
