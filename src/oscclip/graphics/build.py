@@ -12,8 +12,11 @@ from __future__ import annotations
 import base64
 from collections.abc import Iterator
 
-APC = b"\x1b_G"
-ST = b"\x1b\\"
+from oscclip.sequences import APC as _APC
+from oscclip.sequences import ST
+
+#: The kitty graphics protocol uses APC "G" sequences.
+APC = _APC + b"G"
 
 #: Chunks of transmitted image data are at most 4096 bytes.
 CHUNK_SIZE = 4096

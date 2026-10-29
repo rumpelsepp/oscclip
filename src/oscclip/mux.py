@@ -9,10 +9,9 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 
-ESC = b"\x1b"
-DCS = b"\x1bP"
+from oscclip.sequences import DCS, ESC, ST
+
 TMUX_PASSTHROUGH_PREFIX = b"\x1bPtmux;"
-ST = b"\x1b\\"
 
 
 def in_tmux(env: Mapping[str, str] | None = None) -> bool:

@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import base64
 
-OSC = b"\x1b]"
-BEL = b"\x07"
+from oscclip.sequences import BEL, OSC
 
 
 def copy_sequence(data: bytes, *, primary: bool = False) -> bytes:

@@ -9,9 +9,7 @@ from __future__ import annotations
 import base64
 from collections.abc import Iterator, Sequence
 
-OSC = b"\x1b]"
-ST = b"\x1b\\"
-CSI = b"\x1b["
+from oscclip.sequences import CSI, OSC, ST
 
 #: Data is split into chunks of at most 4096 bytes (before base64 encoding).
 CHUNK_SIZE = 4096
