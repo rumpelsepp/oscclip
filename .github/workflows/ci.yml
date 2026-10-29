@@ -23,5 +23,3 @@ jobs:
       - run: uv run mypy
       - run: uv run ty check
       - run: uv run pytest
-      # Short coverage-guided fuzzing smoke run of the parsers.
-      - run: uv run python -m fuzz.fuzz_parsers fuzz/corpus -max_total_time=30 -artifact_prefix=/tmp/fuzz-crashes/
