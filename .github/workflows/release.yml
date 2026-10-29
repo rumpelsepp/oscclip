@@ -2,21 +2,30 @@
 #
 # SPDX-License-Identifier: EUPL-1.2
 
-name: Release
+name: Upload Python Package
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  release:
+    types: [published]
+
+permissions:
+  contents: read
 
 jobs:
-  publish:
+  deploy:
     runs-on: ubuntu-latest
-    environment: pypi
+    environment: release
     permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-      - run: uv build
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - name: Build package
+        run: uv build
+      - name: Publish a Python distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
