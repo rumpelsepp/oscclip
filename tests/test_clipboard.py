@@ -191,3 +191,60 @@ def test_list_mime_osc52_explicit(make_tty: Callable[..., FakeTty]) -> None:
     settings = clipboard.Settings(protocol=clipboard.Protocol.OSC52)
     with pytest.raises(ClipboardError):
         clipboard.list_mime(tty, settings)
+
+
+GRAPHICS_SUPPORTED = b"\x1b_Gi=31;OK\x1b\\"
+
+
+def _png(width: int, height: int) -> bytes:
+    return (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+        + width.to_bytes(4, "big")
+        + height.to_bytes(4, "big")
+        + b"data"
+    )
+
+
+def _image_responses(image: bytes) -> bytes:
+    """Responses for a full paste_image round trip (100x100 image)."""
+    return (
+        DECRPM_SUPPORTED
+        + GRAPHICS_SUPPORTED
+        + read_ok()
+        + read_data(".", b"image/png\n")
+        + read_done()
+        + read_ok()
+        + read_data("image/png", image)
+        + read_done()
+        + b"\x1b[6;20;10t"
+        + b"\x1b[8;24;80t"
+        + GRAPHICS_SUPPORTED
+    )
+
+
+def test_paste_image(make_tty: Callable[..., FakeTty]) -> None:
+    tty = make_tty(_image_responses(_png(100, 100)))
+    clipboard.paste_image(tty)
+    assert tty.written[-1] == b"\x1b[5B\r"
+
+
+def test_paste_image_no_image(make_tty: Callable[..., FakeTty]) -> None:
+    responses = (
+        DECRPM_SUPPORTED
+        + GRAPHICS_SUPPORTED
+        + read_ok()
+        + read_data(".", b"text/plain\n")
+        + read_done()
+    )
+    with pytest.raises(ClipboardError):
+        clipboard.paste_image(make_tty(responses))
+
+
+def test_paste_image_no_graphics_support(make_tty: Callable[..., FakeTty]) -> None:
+    with pytest.raises(ClipboardError):
+        clipboard.paste_image(make_tty(DECRPM_SUPPORTED + b"\x1b[?62;1;2c"))
+
+
+def test_paste_image_no_kitty_support(make_tty: Callable[..., FakeTty]) -> None:
+    with pytest.raises(ClipboardError):
+        clipboard.paste_image(make_tty())

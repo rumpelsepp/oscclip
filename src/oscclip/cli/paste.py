@@ -48,6 +48,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="list the MIME types available on the clipboard and exit",
     )
+    parser.add_argument(
+        "--image",
+        action="store_true",
+        help="paste an image and display it in the terminal",
+    )
     add_bypass_arg(parser)
     add_protocol_arg(parser)
     add_timeout_arg(parser)
@@ -73,6 +78,9 @@ def paste(args: argparse.Namespace) -> int:
     settings = settings_from_args(args)
 
     with RawTerminal() as term:
+        if args.image:
+            clipboard.paste_image(term, settings)
+            return 0
         if args.list_mime:
             for mime in clipboard.list_mime(term, settings):
                 print(mime)

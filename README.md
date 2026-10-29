@@ -58,6 +58,15 @@ text/plain
 image/png
 ```
 
+**Displaying an image from the clipboard in the terminal** (kitty graphics protocol)
+
+```
+$ osc-paste --image
+```
+
+This requires a terminal which implements the kitty graphics protocol, e.g.
+kitty, Ghostty, WezTerm or Konsole.
+
 **Clearing the clipboard**
 
 ```

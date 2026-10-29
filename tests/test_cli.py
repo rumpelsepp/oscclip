@@ -177,6 +177,34 @@ def test_paste_timeout_without_tmux(
     assert "get-clipboard" not in capsys.readouterr().err
 
 
+def test_paste_image(
+    fake_term: Callable[..., FakeTty], capsysbinary: pytest.CaptureFixture[bytes]
+) -> None:
+    png = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+        + (100).to_bytes(4, "big")
+        + (100).to_bytes(4, "big")
+        + b"data"
+    )
+    responses = (
+        DECRPM_SUPPORTED
+        + b"\x1b_Gi=31;OK\x1b\\"
+        + read_ok()
+        + read_data(".", b"image/png\n")
+        + read_done()
+        + read_ok()
+        + read_data("image/png", png)
+        + read_done()
+        + b"\x1b[6;20;10t"
+        + b"\x1b[8;24;80t"
+        + b"\x1b_Gi=31;OK\x1b\\"
+    )
+    tty = fake_term(responses)
+    assert osc_paste.main(["--image"]) == 0
+    assert capsysbinary.readouterr().out == b""
+    assert tty.written[-1] == b"\x1b[5B\r"
+
+
 def test_paste_list_mime(
     fake_term: Callable[..., FakeTty], capsys: pytest.CaptureFixture[str]
 ) -> None:

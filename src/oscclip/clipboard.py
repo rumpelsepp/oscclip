@@ -11,7 +11,7 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from oscclip import kitty, osc52
+from oscclip import graphics, kitty, osc52
 from oscclip.errors import ClipboardError, ClipboardTimeoutError
 from oscclip.mux import in_tmux, wrap_passthrough
 from oscclip.term import Terminal
@@ -130,6 +130,23 @@ def paste(
             raise ClipboardTimeoutError(f"{e}{_get_clipboard_hint()}") from e
         raise
     return ClipboardContent(mime="text/plain", data=response.data)
+
+
+def paste_image(term: Terminal, settings: Settings = DEFAULT_SETTINGS) -> None:
+    """Paste an image from the clipboard and display it in the terminal."""
+    tty = _select(term, settings)
+    if not kitty.supports(tty, timeout=DETECT_TIMEOUT):
+        raise ClipboardError("pasting images requires the kitty clipboard protocol")
+    if not graphics.supports(tty, timeout=DETECT_TIMEOUT):
+        raise ClipboardError("displaying images requires the kitty graphics protocol")
+    available = kitty.list_mime(tty, primary=settings.primary, timeout=settings.timeout)
+    mime = next((entry for entry in available if entry.startswith("image/")), None)
+    if mime is None:
+        raise ClipboardError("no image available on the clipboard")
+    data = kitty.read(tty, [mime], primary=settings.primary, timeout=settings.timeout)
+    if not (image := data.get(mime, b"")):
+        raise ClipboardError("no image available on the clipboard")
+    graphics.display(tty, image, mime=mime, timeout=settings.timeout)
 
 
 def clear(term: Terminal, settings: Settings = DEFAULT_SETTINGS) -> None:
