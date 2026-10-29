@@ -15,7 +15,9 @@ from oscclip.cli import (
     add_bypass_arg,
     add_protocol_arg,
     add_timeout_arg,
+    add_verbose_arg,
     add_version_arg,
+    configure_logging,
     die,
     entrypoint,
     settings_from_args,
@@ -49,6 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_bypass_arg(parser)
     add_protocol_arg(parser)
     add_timeout_arg(parser)
+    add_verbose_arg(parser)
     add_version_arg(parser)
     return parser
 
@@ -86,4 +89,5 @@ def paste(args: argparse.Namespace) -> int:
 def main(argv: Sequence[str] | None = None) -> int:
     """Entry point for osc-paste."""
     args = build_parser().parse_args(argv)
+    configure_logging(args.verbose)
     return paste(args)

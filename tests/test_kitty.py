@@ -17,6 +17,8 @@ from oscclip.errors import (
     ClipboardProtocolError,
     ClipboardTimeoutError,
 )
+from oscclip.kitty import build, parse
+from oscclip.kitty.parse import Packet
 from tests.fake_tty import FakeTty
 
 ST = b"\x1b\\"
@@ -200,3 +202,106 @@ def test_list_mime(make_tty: Callable[..., FakeTty]) -> None:
     responses = read_ok() + read_data(".", b"text/plain image/png\n") + read_done()
     tty = make_tty(responses)
     assert kitty.list_mime(tty, timeout=0.1) == ["text/plain", "image/png"]
+
+
+# --- pure protocol logic (no terminal involved) ---
+
+
+def test_write_sequences() -> None:
+    sequences = list(build.write_sequences(b"hello"))
+    assert sequences == [
+        b"\x1b]5522;type=write" + ST,
+        b"\x1b]5522;type=wdata:mime=" + b64(b"text/plain") + b";" + b64(b"hello") + ST,
+        b"\x1b]5522;type=wdata" + ST,
+    ]
+
+
+def test_write_sequences_primary() -> None:
+    sequences = list(build.write_sequences(b"x", primary=True))
+    assert sequences[0] == b"\x1b]5522;type=write:loc=primary" + ST
+
+
+def test_write_sequences_chunking() -> None:
+    data = bytes(range(256)) * 20  # 5120 bytes
+    sequences = list(build.write_sequences(data))
+    wdata = sequences[1:-1]
+    assert len(wdata) == 2
+    decoded = []
+    for entry in wdata:
+        match = kitty.PACKET_RE.search(entry)
+        assert match is not None
+        assert match.group(2) is not None
+        decoded.append(base64.b64decode(match.group(2)))
+    assert [len(chunk) for chunk in decoded] == [4096, 1024]
+    assert b"".join(decoded) == data
+
+
+def _packet(
+    type_: str,
+    status: str = "",
+    mime: str = "",
+    payload: bytes = b"",
+) -> Packet:
+    return Packet.model_construct(type=type_, status=status, mime=mime, payload=payload)
+
+
+def test_check_write_response_done() -> None:
+    parse.check_write_response(_packet("write", status="DONE"))
+
+
+def test_check_write_response_eperm() -> None:
+    with pytest.raises(ClipboardDeniedError):
+        parse.check_write_response(_packet("write", status="EPERM"))
+
+
+def test_check_write_response_unexpected() -> None:
+    with pytest.raises(ClipboardProtocolError):
+        parse.check_write_response(_packet("read", status="DONE"))
+
+
+def test_read_packets() -> None:
+    packets = [
+        _packet("read", status="OK"),
+        _packet("read", status="DATA", mime="text/plain", payload=b"hello"),
+        _packet("read", status="DONE"),
+    ]
+    assert parse.read_packets(packets) == {"text/plain": b"hello"}
+
+
+def test_read_packets_accumulates_chunks() -> None:
+    packets = [
+        _packet("read", status="DATA", mime="text/plain", payload=b"hel"),
+        _packet("read", status="DATA", mime="text/plain", payload=b"lo"),
+        _packet("read", status="DONE"),
+    ]
+    assert parse.read_packets(packets) == {"text/plain": b"hello"}
+
+
+def test_read_packets_multiple_mime_types() -> None:
+    packets = [
+        _packet("read", status="DATA", mime="text/plain", payload=b"hello"),
+        _packet("read", status="DATA", mime="image/png", payload=b"\x89PNG"),
+        _packet("read", status="DONE"),
+    ]
+    result = parse.read_packets(packets)
+    assert result == {"text/plain": b"hello", "image/png": b"\x89PNG"}
+
+
+def test_read_packets_error() -> None:
+    with pytest.raises(ClipboardDeniedError):
+        parse.read_packets([_packet("read", status="EPERM")])
+
+
+def test_read_packets_unexpected_status() -> None:
+    with pytest.raises(ClipboardProtocolError):
+        parse.read_packets([_packet("read", status="WEIRD")])
+
+
+def test_read_packets_wrong_packet_type() -> None:
+    with pytest.raises(ClipboardProtocolError):
+        parse.read_packets([_packet("write", status="DONE")])
+
+
+def test_read_packets_incomplete() -> None:
+    with pytest.raises(ClipboardProtocolError):
+        parse.read_packets([_packet("read", status="OK")])

@@ -4,6 +4,8 @@
 
 """Utilities to access the system clipboard via terminal escape sequences."""
 
+import logging
+
 from oscclip.clipboard import ClipboardContent, Protocol, Settings, clear, copy, list_mime, paste
 from oscclip.errors import (
     ClipboardDeniedError,
@@ -11,6 +13,8 @@ from oscclip.errors import (
     ClipboardProtocolError,
     ClipboardTimeoutError,
 )
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __all__ = [
     "ClipboardContent",

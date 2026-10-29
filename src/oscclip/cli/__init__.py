@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import functools
+import logging
 import sys
 from collections.abc import Callable, Sequence
 from importlib import metadata
@@ -64,6 +65,26 @@ def add_timeout_arg(parser: argparse.ArgumentParser) -> None:
 def add_version_arg(parser: argparse.ArgumentParser) -> None:
     """Add the --version argument to a parser."""
     parser.add_argument("--version", action="version", version=f"%(prog)s {get_version()}")
+
+
+def add_verbose_arg(parser: argparse.ArgumentParser) -> None:
+    """Add the --verbose argument to a parser."""
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="log protocol details to stderr",
+    )
+
+
+def configure_logging(verbose: bool) -> None:
+    """Configure logging for the command line tools."""
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.WARNING,
+        stream=sys.stderr,
+        format="%(levelname)s %(name)s: %(message)s",
+        force=True,
+    )
 
 
 def settings_from_args(args: argparse.Namespace) -> Settings:

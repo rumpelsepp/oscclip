@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import enum
+import logging
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -15,6 +16,8 @@ from oscclip import kitty, osc52
 from oscclip.errors import ClipboardError, ClipboardTimeoutError
 from oscclip.mux import in_tmux, wrap_passthrough
 from oscclip.term import Terminal
+
+logger = logging.getLogger(__name__)
 
 #: Timeout in seconds for terminal capability queries.
 DETECT_TIMEOUT = 0.5
@@ -77,6 +80,7 @@ def _use_kitty(tty: Terminal, settings: Settings) -> bool:
     supported = kitty.supports(tty, timeout=DETECT_TIMEOUT)
     if not supported and settings.protocol is Protocol.KITTY:
         raise ClipboardError("the terminal does not support the kitty clipboard protocol")
+    logger.debug("kitty clipboard protocol supported: %s", supported)
     return supported
 
 
@@ -105,7 +109,7 @@ def copy(
         kitty.write(tty, data, mime=mime, primary=settings.primary, timeout=settings.timeout)
     else:
         _require_plain_text([mime])
-        tty.write(osc52.copy_sequence(data, primary=settings.primary))
+        osc52.copy(tty, data, primary=settings.primary)
 
 
 def paste(
@@ -140,7 +144,7 @@ def clear(term: Terminal, settings: Settings = DEFAULT_SETTINGS) -> None:
         # empty payload clears the clipboard.
         kitty.write(tty, b"", primary=settings.primary, timeout=settings.timeout)
     else:
-        tty.write(osc52.clear_sequence(primary=settings.primary))
+        osc52.clear(tty, primary=settings.primary)
 
 
 def list_mime(term: Terminal, settings: Settings = DEFAULT_SETTINGS) -> list[str]:

@@ -151,6 +151,19 @@ def test_paste_timeout_tmux_hint(
     assert "get-clipboard" in capsys.readouterr().err
 
 
+def test_paste_verbose_logging(
+    fake_term: Callable[..., FakeTty],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    fake_term(b"\x1b]52;c;" + base64.b64encode(b"hello") + b"\x07")
+    assert osc_paste.main(["--verbose"]) == 0
+    captured = capsys.readouterr()
+    assert "DEBUG" in captured.err
+    # Clipboard contents must never end up in the logs.
+    assert "hello" not in captured.err
+    assert base64.b64encode(b"hello").decode() not in captured.err
+
+
 def test_paste_timeout_without_tmux(
     fake_term: Callable[..., FakeTty],
     capsys: pytest.CaptureFixture[str],

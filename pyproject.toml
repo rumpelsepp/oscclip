@@ -49,6 +49,7 @@ extend-select = [
     "C4",   # flake8-comprehensions
     "E",    # pycodestyle errors (incl. E501)
     "F",    # pyflakes
+    "G",    # flake8-logging-format: lazy logging calls
     "I",    # isort
     "PERF", # perflint
     "PIE",  # flake8-pie

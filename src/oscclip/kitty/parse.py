@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from typing import NoReturn
 
 from pydantic import BaseModel, ConfigDict, ValidationError
@@ -65,6 +66,43 @@ def parse_packet(match: re.Match[bytes]) -> Packet:
 def is_error(status: str) -> bool:
     """Whether a packet status is an error status."""
     return status in _ERROR_MESSAGES
+
+
+def check_write_response(packet: Packet) -> None:
+    """Validate the terminal's response to a write request."""
+    match packet:
+        case Packet(type="write", status="DONE"):
+            return
+        case Packet(status=status) if is_error(status):
+            raise_for_status(status)
+        case _:
+            raise ClipboardProtocolError(
+                f"unexpected response to the clipboard write request: {packet}"
+            )
+
+
+def read_packets(packets: Iterable[Packet]) -> dict[str, bytes]:
+    """Fold the packets of a read response into a result."""
+    result: dict[str, bytes] = {}
+    for packet in packets:
+        if packet.type != "read":
+            raise ClipboardProtocolError(
+                f"unexpected packet type in clipboard read response: {packet.type}"
+            )
+        match packet:
+            case Packet(status="DATA", mime=mime, payload=payload):
+                result[mime] = result.get(mime, b"") + payload
+            case Packet(status="DONE"):
+                return result
+            case Packet(status=status) if is_error(status):
+                raise_for_status(status)
+            case Packet(status="OK"):
+                pass
+            case Packet(status=status):
+                raise ClipboardProtocolError(
+                    f"unexpected status in clipboard read response: {status}"
+                )
+    raise ClipboardProtocolError("incomplete clipboard read response")
 
 
 def raise_for_status(status: str) -> NoReturn:

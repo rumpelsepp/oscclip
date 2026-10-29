@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import selectors
@@ -16,6 +17,8 @@ from collections.abc import Sequence
 from typing import Any, Protocol, Self
 
 _READ_CHUNK_SIZE = 4096
+
+logger = logging.getLogger(__name__)
 
 
 class Terminal(Protocol):
@@ -44,6 +47,7 @@ class RawTerminal:
         self._buffer = b""
 
     def __enter__(self) -> Self:
+        logger.debug("opening terminal %s", self._path)
         fd = os.open(self._path, os.O_RDWR)
         try:
             self._saved_attrs = termios.tcgetattr(fd)
