@@ -18,8 +18,9 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --locked
-      - run: uv run ruff check .
-      - run: uv run ruff format --check .
-      - run: uv run mypy
-      - run: uv run ty check
-      - run: uv run pytest
+      - name: Run lint
+        run: uv run just lint
+      - name: Run typecheck
+        run: uv run just typecheck
+      - name: Run tests
+        run: uv run just test
