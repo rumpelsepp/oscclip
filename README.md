@@ -125,7 +125,7 @@ $ just fuzz-native  # atheris for 60s; crashes land in fuzz/crashes/
 * [foot](https://codeberg.org/dnkl/foot) (OSC 52)
 * [ghostty](https://ghostty.org/) (OSC 52 and kitty clipboard protocol)
 * [kitty](https://sw.kovidgoyal.net/kitty/) (OSC 52 and kitty clipboard protocol)
-* tmux 3.8 (OSC 52 mediation)
+* tmux (OSC 52 mediation)
 
 For a list of terminals that support OSC 52, see
 [this table](https://github.com/ojroques/vim-oscyank#terminals-with-osc52-support).
@@ -142,7 +142,7 @@ behavior is controlled by two tmux server options:
   does tmux accept OSC 52 clipboard writes from panes, so this is required
   for `osc-copy` to work from inside tmux.
 * `get-clipboard` (tmux >= 3.7) — how tmux answers clipboard queries from
-  panes.  With `buffer` (the default in tmux 3.8), tmux answers with its
+  panes.  With `buffer` (the default), tmux answers with its
   newest paste buffer; `request` and `both` forward the query to the outer
   terminal instead (`tmux set -s get-clipboard both`).
 
