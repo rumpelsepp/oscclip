@@ -22,6 +22,15 @@ Both tools auto-detect the terminal's capabilities and prefer the kitty
 clipboard protocol with fallback to OSC 52.  The behavior can be pinned with
 the `--protocol` option.
 
+## Installation
+
+```
+$ pipx install oscclip
+# or: uv tool install oscclip
+```
+
+From a source checkout: `pip install .`
+
 ## Examples
 
 **Setting the clipboard**
@@ -75,6 +84,8 @@ kitty, Ghostty, WezTerm or Konsole.
 $ osc-copy --clear
 ```
 
+Run `osc-copy --help` / `osc-paste --help` for the full list of options.
+
 ## Permissions
 
 Terminals which implement the kitty clipboard protocol ask the user for
@@ -90,8 +101,10 @@ are defined in the [justfile](justfile).
 $ git clone https://github.com/rumpelsepp/oscclip
 $ cd oscclip
 $ uv sync
-$ just
+$ just            # lint + typecheck + test
 ```
+
+Run `just --list` to see all tasks.
 
 Tooling: [ruff](https://docs.astral.sh/ruff/) (lint & format),
 [mypy](https://mypy-lang.org/) (`--strict`), [ty](https://docs.astral.sh/ty/)
@@ -114,6 +127,7 @@ $ just fuzz-native  # atheris for 60s; crashes land in fuzz/crashes/
 
 * [alacritty](https://github.com/alacritty/alacritty) (OSC 52)
 * [foot](https://codeberg.org/dnkl/foot) (OSC 52)
+* [ghostty](https://ghostty.org/) (OSC 52 and kitty clipboard protocol)
 * [kitty](https://sw.kovidgoyal.net/kitty/) (OSC 52 and kitty clipboard protocol)
 * tmux 3.8 (OSC 52 mediation)
 
