@@ -19,3 +19,5 @@ build/
 # Hypothesis example database and fuzzing artifacts
 .hypothesis/
 fuzz/crashes/
+# libFuzzer writes generated corpus units as sha1-named files
+fuzz/corpus/[0-9a-f]*
