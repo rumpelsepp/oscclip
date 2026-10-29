@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - XXXX-XX-XX
+## [0.6.0] - XXXX-XX-XX
+### Changed
+
+- Rewrite in Python; the project is managed with uv now.  Project tasks are
+  defined in a justfile.  Linting and type checking is done with ruff,
+  mypy --strict and ty.
+- Removed the nix flake.
+
+### Added
+
+- Support for the new kitty clipboard protocol (OSC 5522).  It is used
+  automatically when the terminal supports it; OSC 52 is used as a fallback
+  otherwise (`--protocol`).
+- `--mime` to copy and paste arbitrary data types like images.
+- `osc-paste --list-mime` to list the MIME types available on the clipboard.
+
+## [0.5.0] - 2024-03-04
 ### Changed
 
 - Rewrite in Go and use a OSC52 library as a backend.

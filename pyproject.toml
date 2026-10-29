@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: Stefan Tatschner
+#
+# SPDX-License-Identifier: MIT
+
+[project]
+name = "oscclip"
+version = "0.6.0"
+description = "Access the system clipboard via terminal escape sequences (OSC 52 and the kitty clipboard protocol)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Stefan Tatschner", email = "stefan@rumpelsepp.org" },
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/rumpelsepp/oscclip"
+Issues = "https://github.com/rumpelsepp/oscclip/issues"
+Changelog = "https://github.com/rumpelsepp/oscclip/blob/master/CHANGELOG.md"
+
+[project.scripts]
+osc-copy = "oscclip.osc_copy:main"
+osc-paste = "oscclip.osc_paste:main"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19",
+    "pytest>=8.4",
+    "ruff>=0.17",
+    "ty>=0.0.94",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/oscclip"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "PL", "RUF"]
+
+[tool.ruff.lint.pylint]
+max-args = 8
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PLR2004"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+
+[tool.ty.src]
+include = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
