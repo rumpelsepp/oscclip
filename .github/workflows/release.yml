@@ -14,7 +14,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: release
+    environment: deploy
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
