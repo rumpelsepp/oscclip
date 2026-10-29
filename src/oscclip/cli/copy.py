@@ -42,7 +42,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("-t", "--trim", action="store_true", help="trim whitespace of the input")
     parser.add_argument(
-        "-m", "--mime", default="text/plain", help="MIME type of the data (default: %(default)s)"
+        "-m",
+        "--mime",
+        default="auto",
+        help="MIME type of the data; 'auto' detects it (default: %(default)s)",
     )
     add_bypass_arg(parser)
     add_protocol_arg(parser)

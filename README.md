@@ -43,9 +43,11 @@ $ osc-paste
 Foo
 ```
 
-**Copying arbitrary data types** (kitty protocol)
+**Copying arbitrary data types** (kitty protocol).  The MIME type is
+detected automatically from the data:
 
 ```
+$ osc-copy < screenshot.png
 $ osc-copy -m image/png < screenshot.png
 $ osc-paste -m image/png > screenshot.png
 ```

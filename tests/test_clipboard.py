@@ -62,8 +62,20 @@ def test_copy_osc52_explicit(make_tty: Callable[..., FakeTty]) -> None:
 
 def test_copy_kitty_mime(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty(DECRPM_SUPPORTED + write_done())
-    clipboard.copy(tty, b"\x89PNG", mime="image/png")
+    clipboard.copy(tty, b"\x89PNG\r\n\x1a\ndata", mime="image/png")
     assert any(b"type=wdata:mime=" + b64(b"image/png") + b";" in entry for entry in tty.written)
+
+
+def test_copy_auto_sniffs_image(make_tty: Callable[..., FakeTty]) -> None:
+    tty = make_tty(DECRPM_SUPPORTED + write_done())
+    clipboard.copy(tty, b"\x89PNG\r\n\x1a\ndata")
+    assert any(b"type=wdata:mime=" + b64(b"image/png") + b";" in entry for entry in tty.written)
+
+
+def test_copy_auto_sniffs_text(make_tty: Callable[..., FakeTty]) -> None:
+    tty = make_tty()
+    clipboard.copy(tty, b"plain text")
+    assert tty.written == [b"\x1b[?5522$p", b"\x1b]52;c;" + b64(b"plain text") + b"\x07"]
 
 
 def test_copy_kitty_explicit_unsupported(make_tty: Callable[..., FakeTty]) -> None:

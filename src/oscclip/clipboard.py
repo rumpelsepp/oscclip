@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import enum
+import logging
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -14,7 +15,10 @@ from dataclasses import dataclass
 from oscclip import graphics, kitty, osc52
 from oscclip.errors import ClipboardError, ClipboardTimeoutError
 from oscclip.mux import in_tmux, wrap_passthrough
+from oscclip.sniff import sniff_mime
 from oscclip.term import Terminal
+
+logger = logging.getLogger(__name__)
 
 #: Timeout in seconds for terminal capability queries.
 DETECT_TIMEOUT = 0.5
@@ -97,10 +101,16 @@ def copy(
     data: bytes,
     settings: Settings = DEFAULT_SETTINGS,
     *,
-    mime: str = "text/plain",
+    mime: str = "auto",
 ) -> None:
-    """Copy data to the system clipboard."""
+    """Copy data to the system clipboard.
+
+    With the special MIME type "auto", the type is sniffed from the data.
+    """
     tty = _select(term, settings)
+    if mime == "auto":
+        mime = sniff_mime(data)
+        logger.debug("sniffed MIME type: %s", mime)
     if _use_kitty(tty, settings):
         kitty.write(tty, data, mime=mime, primary=settings.primary, timeout=settings.timeout)
     else:

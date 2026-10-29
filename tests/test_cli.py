@@ -105,6 +105,16 @@ def test_copy_kitty_explicit_unsupported(fake_term: Callable[..., FakeTty]) -> N
     assert excinfo.value.code == 1
 
 
+def test_copy_stdin_image(
+    fake_term: Callable[..., FakeTty], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tty = fake_term(DECRPM_SUPPORTED + write_done())
+    png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + bytes(24)
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(png)))
+    assert osc_copy.main([]) == 0
+    assert any(b"type=wdata:mime=" + b64(b"image/png") + b";" in entry for entry in tty.written)
+
+
 def test_paste_osc52(
     fake_term: Callable[..., FakeTty], capsysbinary: pytest.CaptureFixture[bytes]
 ) -> None:
