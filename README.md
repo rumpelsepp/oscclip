@@ -35,12 +35,6 @@ $ pipx install oscclip
 $ echo "Foo" | osc-copy
 ```
 
-**Setting the clipboard and bypass terminal multiplexers**
-
-```
-$ echo "Foo" | osc-copy --bypass
-```
-
 **Reading the clipboard**
 
 ```
@@ -78,6 +72,12 @@ kitty, Ghostty, WezTerm or Konsole.
 
 ```
 $ osc-copy --clear
+```
+
+**Bypassing terminal multiplexers** (see the tmux caveat below)
+
+```
+$ echo "Foo" | osc-copy --bypass
 ```
 
 Run `osc-copy --help` / `osc-paste --help` for the full list of options.
