@@ -1,7 +1,5 @@
 # oscclip
 
-**There is a better maintained alternative available; just use this instead: https://github.com/theimpostor/osc**
-
 [![Packaging status](https://repology.org/badge/vertical-allrepos/oscclip.svg)](https://repology.org/project/oscclip/versions)
 
 `oscclip` is a set of utilities which utilize the system clipboard via
@@ -28,8 +26,6 @@ the `--protocol` option.
 $ pipx install oscclip
 # or: uv tool install oscclip
 ```
-
-From a source checkout: `pip install .`
 
 ## Examples
 
