@@ -10,7 +10,7 @@ import argparse
 import sys
 from collections.abc import Sequence
 
-from . import clipboard, mux
+from . import clipboard
 from .cli import add_bypass_arg, add_protocol_arg, add_timeout_arg, add_version_arg, die
 from .errors import ClipboardError
 from .term import RawTerminal
@@ -46,8 +46,6 @@ def build_parser() -> argparse.ArgumentParser:
 def run(argv: Sequence[str] | None = None) -> int:
     """Run osc-copy."""
     args = build_parser().parse_args(argv)
-    if args.bypass:
-        mux.warn_tmux_passthrough(sys.stderr)
 
     if args.clear:
         data = b""

@@ -117,5 +117,4 @@ detects this and automatically falls back to OSC 52.
 
 With `--bypass`, all escape sequences are wrapped in tmux' passthrough DCS
 sequences and reach the outer terminal unchanged.  This requires the
-`allow-passthrough` option (`tmux set -w allow-passthrough on`); both tools
-print a warning to `stderr` if it is not enabled.
+`allow-passthrough` option (`tmux set -w allow-passthrough on`).

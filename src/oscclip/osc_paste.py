@@ -60,8 +60,6 @@ def _write_output(content: ClipboardContent, *, trim: bool) -> None:
 def run(argv: Sequence[str] | None = None) -> int:
     """Run osc-paste."""
     args = build_parser().parse_args(argv)
-    if args.bypass:
-        mux.warn_tmux_passthrough(sys.stderr)
     mimes = args.mime or ["text/plain"]
 
     try:
