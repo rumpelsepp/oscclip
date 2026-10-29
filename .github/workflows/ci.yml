@@ -17,9 +17,8 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
       - run: uv sync --locked
-      - run: uv run ruff check .
-      - run: uv run ruff format --check .
-      - run: uv run mypy
-      - run: uv run ty check
-      - run: uv run pytest
+      - run: just
