@@ -13,7 +13,7 @@ import termios
 import time
 import tty as tty_module
 from collections.abc import Sequence
-from typing import Any, Protocol
+from typing import Any, Protocol, Self
 
 _READ_CHUNK_SIZE = 4096
 
@@ -43,7 +43,7 @@ class RawTerminal:
         self._saved_attrs: list[Any] | None = None
         self._buffer = b""
 
-    def __enter__(self) -> RawTerminal:
+    def __enter__(self) -> Self:
         fd = os.open(self._path, os.O_RDWR)
         try:
             self._saved_attrs = termios.tcgetattr(fd)

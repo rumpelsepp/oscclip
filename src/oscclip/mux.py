@@ -17,6 +17,12 @@ TMUX_PASSTHROUGH_PREFIX = b"\x1bPtmux;"
 ST = b"\x1b\\"
 
 
+def in_tmux(env: Mapping[str, str] | None = None) -> bool:
+    """Whether the program runs inside tmux."""
+    env = os.environ if env is None else env
+    return env.get("TMUX") is not None
+
+
 def _in_screen(env: Mapping[str, str]) -> bool:
     return env.get("STY") is not None or env.get("TERM", "").startswith("screen")
 
@@ -24,7 +30,7 @@ def _in_screen(env: Mapping[str, str]) -> bool:
 def is_muxed(env: Mapping[str, str] | None = None) -> bool:
     """Whether the program runs inside a terminal multiplexer."""
     env = os.environ if env is None else env
-    return env.get("TMUX") is not None or _in_screen(env)
+    return in_tmux(env) or _in_screen(env)
 
 
 def wrap_passthrough(data: bytes, env: Mapping[str, str] | None = None) -> bytes:
@@ -41,21 +47,30 @@ def wrap_passthrough(data: bytes, env: Mapping[str, str] | None = None) -> bytes
     return data
 
 
-def tmux_passthrough_enabled(env: Mapping[str, str] | None = None) -> bool:
-    """Whether tmux's allow-passthrough option is enabled."""
-    env = os.environ if env is None else env
-    if env.get("TMUX") is None:
-        return True
+def _show_options(scope: str) -> str:
+    """Run tmux show-options for the given scope and return its output."""
     try:
         proc = subprocess.run(
-            ["tmux", "show-options", "-s"],
+            ["tmux", "show-options", scope],
             capture_output=True,
             check=True,
             timeout=5,
         )
-    except (OSError, subprocess.SubprocessError):
+    except OSError, subprocess.SubprocessError:
+        return ""
+    return proc.stdout.decode(errors="replace")
+
+
+def tmux_passthrough_enabled(env: Mapping[str, str] | None = None) -> bool:
+    """Whether tmux's allow-passthrough option is enabled."""
+    env = os.environ if env is None else env
+    if not in_tmux(env):
+        return True
+    # Depending on the tmux version, allow-passthrough is either a server
+    # or a window option, so query both scopes.
+    options = _show_options("-s") + _show_options("-w")
+    if not options:
         return False
-    options = proc.stdout.decode(errors="replace")
     return "allow-passthrough on" in options or "allow-passthrough all" in options
 
 

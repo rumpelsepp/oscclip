@@ -13,7 +13,7 @@ from collections.abc import Sequence
 from . import clipboard, mux
 from .cli import add_bypass_arg, add_protocol_arg, add_timeout_arg, add_version_arg, die
 from .clipboard import ClipboardContent
-from .errors import ClipboardError
+from .errors import ClipboardError, ClipboardTimeoutError
 from .term import RawTerminal
 
 
@@ -84,6 +84,14 @@ def run(argv: Sequence[str] | None = None) -> int:
                 protocol=args.protocol,
                 timeout=args.timeout,
             )
+    except ClipboardTimeoutError as e:
+        message = str(e)
+        if mux.in_tmux():
+            message += (
+                " (hint: enable tmux's `get-clipboard` option, "
+                "e.g. `tmux set -s get-clipboard both`)"
+            )
+        die(message)
     except ClipboardError as e:
         die(str(e))
     except OSError as e:

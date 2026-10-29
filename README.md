@@ -91,6 +91,7 @@ and [pytest](https://pytest.org).
 * [alacritty](https://github.com/alacritty/alacritty) (OSC 52)
 * [foot](https://codeberg.org/dnkl/foot) (OSC 52)
 * [kitty](https://sw.kovidgoyal.net/kitty/) (OSC 52 and kitty clipboard protocol)
+* tmux 3.8 (OSC 52 mediation)
 
 For a list of terminals that support OSC 52, see
 [this table](https://github.com/ojroques/vim-oscyank#terminals-with-osc52-support).
@@ -99,12 +100,22 @@ For a list of terminals that support OSC 52, see
 
 ### tmux
 
-There is a [bug](https://github.com/tmux/tmux/pull/2942) in `tmux`.
-Due to this, `osc-paste` does not work with `tmux < 3.3` running in `foot`.
+tmux mediates clipboard access between panes and the outer terminal.  The
+behavior is controlled by two tmux server options:
 
-In order to make `--bypass` work, `allow-passthrough` must be enabled.
-Check the manpage of `tmux`.  `osc-copy` and `osc-paste` issue a warning to
-`stderr` when this option is not set and `--bypass` is present.
+* `set-clipboard` (default: `external`) — whether tmux sets the system
+  clipboard of the outer terminal.  Only with `set -s set-clipboard on`
+  does tmux accept OSC 52 clipboard writes from panes, so this is required
+  for `osc-copy` to work from inside tmux.
+* `get-clipboard` (tmux >= 3.7) — how tmux answers clipboard queries from
+  panes.  With `buffer` (the default in tmux 3.8), tmux answers with its
+  newest paste buffer; `request` and `both` forward the query to the outer
+  terminal instead (`tmux set -s get-clipboard both`).
 
-In order to let `tmux` set the system clipboard, the option `set-clipboard`
-must be enabled.
+tmux does not implement the kitty clipboard protocol (OSC 5522); `oscclip`
+detects this and automatically falls back to OSC 52.
+
+With `--bypass`, all escape sequences are wrapped in tmux' passthrough DCS
+sequences and reach the outer terminal unchanged.  This requires the
+`allow-passthrough` option (`tmux set -w allow-passthrough on`); both tools
+print a warning to `stderr` if it is not enabled.

@@ -137,6 +137,32 @@ def test_paste_timeout(fake_term: Callable[..., FakeTty]) -> None:
     assert excinfo.value.code == 1
 
 
+def test_paste_timeout_tmux_hint(
+    fake_term: Callable[..., FakeTty],
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TMUX", "/tmp/sock,1,0")
+    fake_term()
+    with pytest.raises(SystemExit) as excinfo:
+        osc_paste.main(["--timeout", "0.1"])
+    assert excinfo.value.code == 1
+    assert "get-clipboard" in capsys.readouterr().err
+
+
+def test_paste_timeout_without_tmux(
+    fake_term: Callable[..., FakeTty],
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("TMUX", raising=False)
+    fake_term()
+    with pytest.raises(SystemExit) as excinfo:
+        osc_paste.main(["--timeout", "0.1"])
+    assert excinfo.value.code == 1
+    assert "get-clipboard" not in capsys.readouterr().err
+
+
 def test_paste_list_mime(
     fake_term: Callable[..., FakeTty], capsys: pytest.CaptureFixture[str]
 ) -> None:

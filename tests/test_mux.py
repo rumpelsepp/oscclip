@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+import sys
+
 import pytest
 
 from oscclip import mux
@@ -63,3 +65,47 @@ def test_tmux_passthrough_enabled_without_tmux_binary(monkeypatch: pytest.Monkey
     monkeypatch.setenv("TMUX", "/tmp/sock,1,0")
     monkeypatch.setenv("PATH", "/nonexistent")
     assert mux.tmux_passthrough_enabled() is False
+
+
+def _fake_tmux(tmp_path: pytest.TempPathFactory, output: str) -> str:
+    directory = tmp_path.mktemp("fake-tmux")
+    script = directory / "tmux"
+    script.write_text(f"#!/bin/sh\nprintf '{output}'\n")
+    script.chmod(0o755)
+    return str(directory)
+
+
+def test_tmux_passthrough_enabled_window_option(
+    tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TMUX", "/tmp/sock,1,0")
+    monkeypatch.setenv("PATH", _fake_tmux(tmp_path_factory, "allow-passthrough on\\n"))
+    assert mux.tmux_passthrough_enabled() is True
+
+
+def test_tmux_passthrough_enabled_all(
+    tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TMUX", "/tmp/sock,1,0")
+    monkeypatch.setenv("PATH", _fake_tmux(tmp_path_factory, "allow-passthrough all\\n"))
+    assert mux.tmux_passthrough_enabled() is True
+
+
+def test_tmux_passthrough_disabled(
+    tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TMUX", "/tmp/sock,1,0")
+    monkeypatch.setenv("PATH", _fake_tmux(tmp_path_factory, "allow-passthrough off\\n"))
+    assert mux.tmux_passthrough_enabled() is False
+
+
+def test_warn_tmux_passthrough(
+    capsys: pytest.CaptureFixture[str],
+    tmp_path_factory: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TMUX", "/tmp/sock,1,0")
+    monkeypatch.setenv("PATH", _fake_tmux(tmp_path_factory, "allow-passthrough off\\n"))
+    mux.warn_tmux_passthrough(sys.stderr)
+    captured = capsys.readouterr()
+    assert "allow-passthrough" in captured.err

@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   otherwise (`--protocol`).
 - `--mime` to copy and paste arbitrary data types like images.
 - `osc-paste --list-mime` to list the MIME types available on the clipboard.
+- Improved tmux integration: `osc-paste` hints at tmux's `get-clipboard`
+  option (tmux >= 3.7) when clipboard queries are not answered; the
+  `allow-passthrough` warning now also covers the window option scope.
 
 ## [0.5.0] - 2024-03-04
 ### Changed
