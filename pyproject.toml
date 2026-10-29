@@ -25,6 +25,8 @@ osc-paste = "oscclip.cli.paste:main"
 
 [dependency-groups]
 dev = [
+    "atheris>=3.1.0",
+    "hypothesis>=6.170.13",
     "mypy>=1.19",
     "pytest>=8.4",
     "ruff>=0.17",
@@ -68,6 +70,7 @@ max-args = 8
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR2004"]
+"fuzz/*" = ["E402"]  # atheris.instrument_all() must run before the oscclip imports
 # These modules implement the CLI output; print is intentional here.
 "src/oscclip/cli/__init__.py" = ["T201"]
 "src/oscclip/cli/paste.py" = ["T201"]

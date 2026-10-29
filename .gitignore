@@ -15,3 +15,7 @@ build/
 
 # Scratch files
 *.png
+
+# Hypothesis example database and fuzzing artifacts
+.hypothesis/
+fuzz/crashes/

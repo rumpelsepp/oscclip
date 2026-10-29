@@ -97,6 +97,19 @@ Tooling: [ruff](https://docs.astral.sh/ruff/) (lint & format),
 [mypy](https://mypy-lang.org/) (`--strict`), [ty](https://docs.astral.sh/ty/)
 and [pytest](https://pytest.org).
 
+## Fuzzing
+
+The parsers are covered by property-based tests
+([hypothesis](https://hypothesis.readthedocs.io/), in
+`tests/test_properties.py`) and by a coverage-guided fuzzer
+([atheris](https://github.com/google/atheris), libFuzzer-based, in
+`fuzz/fuzz_parsers.py` with seeds in `fuzz/corpus/`):
+
+```
+$ just fuzz         # hypothesis with the extended "fuzz" profile
+$ just fuzz-native  # atheris for 60s; crashes land in fuzz/crashes/
+```
+
 ## Tested Terminals
 
 * [alacritty](https://github.com/alacritty/alacritty) (OSC 52)

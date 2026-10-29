@@ -34,6 +34,17 @@ typecheck:
 test:
     uv run pytest
 
+# Run the property-based tests (tests/test_properties.py) with the extended
+# hypothesis "fuzz" profile (more examples, longer deadline).
+fuzz:
+    HYPOTHESIS_PROFILE=fuzz uv run pytest tests/test_properties.py -q
+
+# Coverage-guided fuzzing of the parsers with atheris/libFuzzer (Go-style).
+# Crashes and hangs are written to fuzz/crashes/.
+fuzz-native:
+    mkdir -p fuzz/crashes
+    uv run python -m fuzz.fuzz_parsers fuzz/corpus -max_total_time=60 -artifact_prefix=fuzz/crashes/
+
 # Build sdist and wheel into dist/.
 build:
     uv build
