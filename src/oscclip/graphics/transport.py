@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from oscclip.errors import ClipboardError, ClipboardProtocolError, ClipboardTimeoutError
 from oscclip.graphics import build, parse
@@ -14,11 +16,20 @@ from oscclip.term import Terminal
 
 logger = logging.getLogger(__name__)
 
-#: Supported image formats mapped to the f key of the graphics protocol.
+
+@dataclass(frozen=True)
+class _ImageFormat:
+    """A displayable image format: graphics protocol f key and size parser."""
+
+    f: int
+    sizer: Callable[[bytes], tuple[int, int]]
+
+
+#: Supported image formats.
 _FORMATS = {
-    "image/png": 100,
-    "image/jpeg": 32,
-    "image/webp": 54,
+    "image/png": _ImageFormat(f=100, sizer=parse.png_size),
+    "image/jpeg": _ImageFormat(f=32, sizer=parse.jpeg_size),
+    "image/webp": _ImageFormat(f=54, sizer=parse.webp_size),
 }
 
 
@@ -39,16 +50,13 @@ def display(tty: Terminal, data: bytes, *, mime: str, timeout: float) -> None:
         raise ClipboardError(f"cannot display {mime} images in the terminal")
     logger.debug("displaying a %s image (%d bytes)", mime, len(data))
 
-    columns: int | None = None
-    rows: int | None = None
-    if mime == "image/png":
-        cell = _query_cell(tty, timeout)
-        window = _query_window(tty, timeout)
-        placement = parse.placement_size(parse.png_size(data), cell, window)
-        columns = placement.columns if placement.scaled else None
-        rows = placement.rows
+    cell = _query_cell(tty, timeout)
+    window = _query_window(tty, timeout)
+    placement = parse.placement_size(image_format.sizer(data), cell, window)
+    columns = placement.columns if placement.scaled else None
+    rows = placement.rows
 
-    for sequence in build.display_sequences(data, image_format=image_format, columns=columns):
+    for sequence in build.display_sequences(data, image_format=image_format.f, columns=columns):
         tty.write(sequence)
 
     response = tty.read_until([parse.RESPONSE_RE], timeout)
