@@ -15,28 +15,29 @@ from oscclip import osc52
 from oscclip.errors import ClipboardProtocolError
 
 
-def test_build_copy() -> None:
-    assert osc52.build_copy(b"hello") == b"\x1b]52;c;" + base64.b64encode(b"hello") + b"\x07"
+def test_copy_sequence() -> None:
+    assert osc52.copy_sequence(b"hello") == b"\x1b]52;c;" + base64.b64encode(b"hello") + b"\x07"
 
 
-def test_build_copy_primary() -> None:
-    assert osc52.build_copy(b"x", primary=True) == b"\x1b]52;p;" + base64.b64encode(b"x") + b"\x07"
+def test_copy_sequence_primary() -> None:
+    expected = b"\x1b]52;p;" + base64.b64encode(b"x") + b"\x07"
+    assert osc52.copy_sequence(b"x", primary=True) == expected
 
 
-def test_build_query() -> None:
-    assert osc52.build_query() == b"\x1b]52;c;?\x07"
+def test_query_sequence() -> None:
+    assert osc52.query_sequence() == b"\x1b]52;c;?\x07"
 
 
-def test_build_query_primary() -> None:
-    assert osc52.build_query(primary=True) == b"\x1b]52;p;?\x07"
+def test_query_sequence_primary() -> None:
+    assert osc52.query_sequence(primary=True) == b"\x1b]52;p;?\x07"
 
 
-def test_build_clear() -> None:
-    assert osc52.build_clear() == b"\x1b]52;c;!\x07"
+def test_clear_sequence() -> None:
+    assert osc52.clear_sequence() == b"\x1b]52;c;!\x07"
 
 
-def test_build_clear_primary() -> None:
-    assert osc52.build_clear(primary=True) == b"\x1b]52;p;!\x07"
+def test_clear_sequence_primary() -> None:
+    assert osc52.clear_sequence(primary=True) == b"\x1b]52;p;!\x07"
 
 
 def _match(response: bytes) -> re.Match[bytes]:

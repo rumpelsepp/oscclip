@@ -87,13 +87,9 @@ def _require_plain_text(mimes: Sequence[str]) -> None:
         )
 
 
-def _query_timeout_message() -> str:
-    message = "the terminal did not respond to the clipboard query"
-    if in_tmux():
-        message += (
-            " (hint: enable tmux's `get-clipboard` option, e.g. `tmux set -s get-clipboard both`)"
-        )
-    return message
+def _get_clipboard_hint() -> str:
+    """Hint for tmux's get-clipboard option (tmux >= 3.7)."""
+    return " (hint: enable tmux's `get-clipboard` option, e.g. `tmux set -s get-clipboard both`)"
 
 
 def copy(
@@ -109,7 +105,7 @@ def copy(
         kitty.write(tty, data, mime=mime, primary=settings.primary, timeout=settings.timeout)
     else:
         _require_plain_text([mime])
-        tty.write(osc52.build_copy(data, primary=settings.primary))
+        tty.write(osc52.copy_sequence(data, primary=settings.primary))
 
 
 def paste(
@@ -127,11 +123,12 @@ def paste(
                 return ClipboardContent(mime=mime, data=available[mime])
         raise ClipboardError("none of the requested MIME types are available on the clipboard")
     _require_plain_text(mimes)
-    tty.write(osc52.build_query(primary=settings.primary))
-    match = tty.read_until([osc52.RESPONSE_RE], settings.timeout)
-    if match is None:
-        raise ClipboardTimeoutError(_query_timeout_message())
-    response = osc52.parse_response(match)
+    try:
+        response = osc52.query(tty, primary=settings.primary, timeout=settings.timeout)
+    except ClipboardTimeoutError as e:
+        if in_tmux():
+            raise ClipboardTimeoutError(f"{e}{_get_clipboard_hint()}") from e
+        raise
     return ClipboardContent(mime="text/plain", data=response.data)
 
 
@@ -143,7 +140,7 @@ def clear(term: Terminal, settings: Settings = DEFAULT_SETTINGS) -> None:
         # empty payload clears the clipboard.
         kitty.write(tty, b"", primary=settings.primary, timeout=settings.timeout)
     else:
-        tty.write(osc52.build_clear(primary=settings.primary))
+        tty.write(osc52.clear_sequence(primary=settings.primary))
 
 
 def list_mime(term: Terminal, settings: Settings = DEFAULT_SETTINGS) -> list[str]:
