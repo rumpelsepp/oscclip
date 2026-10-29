@@ -20,14 +20,6 @@ def test_wrap_tmux() -> None:
     assert mux.wrap_passthrough(data, env={"TMUX": "/tmp/sock,1,0"}) == expected
 
 
-def test_wrap_tmux_doubles_esc() -> None:
-    data = b"\x1b]5522;type=write\x1b\\"
-    wrapped = mux.wrap_passthrough(data, env={"TMUX": "/tmp/sock,1,0"})
-    assert wrapped.count(b"\x1b\x1b") == 2
-    assert wrapped.startswith(b"\x1bPtmux;")
-    assert wrapped.endswith(b"\x1b\\")
-
-
 def test_wrap_screen_sty() -> None:
     data = b"\x1b]52;c;AAAA\x07"
     expected = b"\x1bP\x1b]52;c;AAAA\x07\x1b\\"

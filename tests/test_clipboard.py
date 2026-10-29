@@ -6,38 +6,23 @@
 
 from __future__ import annotations
 
-import base64
 from collections.abc import Callable
 
 import pytest
 
 from oscclip import clipboard
 from oscclip.errors import ClipboardError, ClipboardTimeoutError
+from oscclip.sequences import ST
 from tests.fake_tty import FakeTty
-
-DECRPM_SUPPORTED = b"\x1b[?5522;1$y"
-ST = b"\x1b\\"
-
-
-def b64(data: bytes) -> bytes:
-    return base64.b64encode(data)
-
-
-def read_ok() -> bytes:
-    return b"\x1b]5522;type=read:status=OK" + ST
-
-
-def read_data(mime: str, data: bytes) -> bytes:
-    meta = f"type=read:status=DATA:mime={b64(mime.encode()).decode()}"
-    return b"\x1b]5522;" + meta.encode() + b";" + b64(data) + ST
-
-
-def read_done() -> bytes:
-    return b"\x1b]5522;type=read:status=DONE" + ST
-
-
-def write_done() -> bytes:
-    return b"\x1b]5522;type=write:status=DONE" + ST
+from tests.helpers import (
+    DECRPM_SUPPORTED,
+    b64,
+    png_bytes,
+    read_data,
+    read_done,
+    read_ok,
+    write_done,
+)
 
 
 def test_copy_kitty_auto(make_tty: Callable[..., FakeTty]) -> None:
@@ -222,15 +207,6 @@ def test_list_mime_osc52_explicit(make_tty: Callable[..., FakeTty]) -> None:
 GRAPHICS_SUPPORTED = b"\x1b_Gi=31;OK\x1b\\"
 
 
-def _png(width: int, height: int) -> bytes:
-    return (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
-        + width.to_bytes(4, "big")
-        + height.to_bytes(4, "big")
-        + b"data"
-    )
-
-
 def _image_responses(image: bytes) -> bytes:
     """Responses for a full paste_image round trip (100x100 image)."""
     return (
@@ -249,7 +225,7 @@ def _image_responses(image: bytes) -> bytes:
 
 
 def test_paste_image(make_tty: Callable[..., FakeTty]) -> None:
-    tty = make_tty(_image_responses(_png(100, 100)))
+    tty = make_tty(_image_responses(png_bytes(100, 100)))
     clipboard.paste_image(tty)
     assert tty.written[-1] == b"\x1b[5B\r"
 

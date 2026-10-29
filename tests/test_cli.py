@@ -15,31 +15,16 @@ import pytest
 
 from oscclip.cli import copy as osc_copy
 from oscclip.cli import paste as osc_paste
+from oscclip.sequences import ST
 from tests.fake_tty import FakeRawTerminal, FakeTty
-
-DECRPM_SUPPORTED = b"\x1b[?5522;1$y"
-ST = b"\x1b\\"
-
-
-def b64(data: bytes) -> bytes:
-    return base64.b64encode(data)
-
-
-def read_ok() -> bytes:
-    return b"\x1b]5522;type=read:status=OK" + ST
-
-
-def read_data(mime: str, data: bytes) -> bytes:
-    meta = f"type=read:status=DATA:mime={b64(mime.encode()).decode()}"
-    return b"\x1b]5522;" + meta.encode() + b";" + b64(data) + ST
-
-
-def read_done() -> bytes:
-    return b"\x1b]5522;type=read:status=DONE" + ST
-
-
-def write_done() -> bytes:
-    return b"\x1b]5522;type=write:status=DONE" + ST
+from tests.helpers import (
+    DECRPM_SUPPORTED,
+    b64,
+    read_data,
+    read_done,
+    read_ok,
+    write_done,
+)
 
 
 @pytest.fixture
