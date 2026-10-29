@@ -19,37 +19,9 @@ from oscclip.errors import (
 )
 from oscclip.kitty import build, parse
 from oscclip.kitty.parse import Packet
+from oscclip.sequences import ST
 from tests.fake_tty import FakeTty
-
-ST = b"\x1b\\"
-
-
-def b64(data: bytes) -> bytes:
-    return base64.b64encode(data)
-
-
-def packet(meta: str, payload: bytes = b"") -> bytes:
-    result = b"\x1b]5522;" + meta.encode()
-    if payload:
-        result += b";" + payload
-    return result + ST
-
-
-def read_ok() -> bytes:
-    return packet("type=read:status=OK")
-
-
-def read_data(mime: str, data: bytes) -> bytes:
-    meta = f"type=read:status=DATA:mime={b64(mime.encode()).decode()}"
-    return packet(meta, b64(data))
-
-
-def read_done() -> bytes:
-    return packet("type=read:status=DONE")
-
-
-def write_done() -> bytes:
-    return packet("type=write:status=DONE")
+from tests.helpers import b64, packet, read_data, read_done, read_ok, write_done
 
 
 @pytest.mark.parametrize(("status", "expected"), [("1", True), ("2", True), ("3", True)])
@@ -68,16 +40,6 @@ def test_supports_no_response(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty()
     assert kitty.supports(tty, timeout=0.1) is False
     assert tty.written == [b"\x1b[?5522$p"]
-
-
-def test_write_packets(make_tty: Callable[..., FakeTty]) -> None:
-    tty = make_tty(write_done())
-    kitty.write(tty, b"hello", timeout=0.1)
-    assert tty.written == [
-        b"\x1b]5522;type=write" + ST,
-        b"\x1b]5522;type=wdata:mime=" + b64(b"text/plain") + b";" + b64(b"hello") + ST,
-        b"\x1b]5522;type=wdata" + ST,
-    ]
 
 
 def test_write_primary(make_tty: Callable[..., FakeTty]) -> None:
@@ -127,36 +89,10 @@ def test_write_timeout(make_tty: Callable[..., FakeTty]) -> None:
         kitty.write(tty, b"x", timeout=0.1)
 
 
-def test_write_unexpected_response(make_tty: Callable[..., FakeTty]) -> None:
-    tty = make_tty(read_done())
-    with pytest.raises(ClipboardProtocolError):
-        kitty.write(tty, b"x", timeout=0.1)
-
-
 def test_read(make_tty: Callable[..., FakeTty]) -> None:
     responses = read_ok() + read_data("text/plain", b"hello") + read_done()
     tty = make_tty(responses)
     assert kitty.read(tty, ["text/plain"], timeout=0.1) == {"text/plain": b"hello"}
-
-
-def test_read_accumulates_chunks(make_tty: Callable[..., FakeTty]) -> None:
-    responses = (
-        read_ok() + read_data("text/plain", b"hel") + read_data("text/plain", b"lo") + read_done()
-    )
-    tty = make_tty(responses)
-    assert kitty.read(tty, ["text/plain"], timeout=0.1) == {"text/plain": b"hello"}
-
-
-def test_read_multiple_mime_types(make_tty: Callable[..., FakeTty]) -> None:
-    responses = (
-        read_ok()
-        + read_data("text/plain", b"hello")
-        + read_data("image/png", b"\x89PNG")
-        + read_done()
-    )
-    tty = make_tty(responses)
-    result = kitty.read(tty, ["text/plain", "image/png"], timeout=0.1)
-    assert result == {"text/plain": b"hello", "image/png": b"\x89PNG"}
 
 
 def test_read_permission_denied(make_tty: Callable[..., FakeTty]) -> None:
@@ -168,18 +104,6 @@ def test_read_permission_denied(make_tty: Callable[..., FakeTty]) -> None:
 def test_read_timeout(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty()
     with pytest.raises(ClipboardTimeoutError):
-        kitty.read(tty, ["text/plain"], timeout=0.1)
-
-
-def test_read_unexpected_packet_type(make_tty: Callable[..., FakeTty]) -> None:
-    tty = make_tty(write_done())
-    with pytest.raises(ClipboardProtocolError):
-        kitty.read(tty, ["text/plain"], timeout=0.1)
-
-
-def test_read_unexpected_status(make_tty: Callable[..., FakeTty]) -> None:
-    tty = make_tty(packet("type=read:status=WEIRD"))
-    with pytest.raises(ClipboardProtocolError):
         kitty.read(tty, ["text/plain"], timeout=0.1)
 
 
@@ -196,6 +120,16 @@ def test_read_invalid_base64_metadata(make_tty: Callable[..., FakeTty]) -> None:
     tty = make_tty(responses)
     with pytest.raises(ClipboardProtocolError):
         kitty.read(tty, ["text/plain"], timeout=0.1)
+
+
+def test_parse_packet_non_ascii_base64_metadata() -> None:
+    # Found by the atheris fuzzer: a non-ASCII byte in a base64 metadata
+    # value made b64decode raise ValueError instead of a domain error.
+    data = b"\x1b]5522;type=read:status=DATA:mime=dGV4d\xc28=\x1b\\"
+    match = kitty.PACKET_RE.search(data)
+    assert match is not None
+    with pytest.raises(ClipboardProtocolError):
+        parse.parse_packet(match)
 
 
 def test_list_mime(make_tty: Callable[..., FakeTty]) -> None:

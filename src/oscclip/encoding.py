@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import base64
-import binascii
 
 from oscclip.errors import ClipboardProtocolError
 
@@ -16,7 +15,9 @@ def decode_bytes(value: str | bytes) -> bytes:
     """Decode a base64 encoded value into bytes."""
     try:
         return base64.b64decode(value, validate=True)
-    except binascii.Error as e:
+    # binascii.Error (invalid base64) and ValueError (non-ASCII str input)
+    # are both subclasses of ValueError.
+    except ValueError as e:
         raise ClipboardProtocolError(f"invalid base64 data: {e}") from e
 
 
